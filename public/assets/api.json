@@ -1,0 +1,65 @@
+{
+  "apis": [
+    {
+      "method": "POST",
+      "path": "/upload",
+      "description": "上传图片文件接口",
+      "params": [
+        {
+          "name": "Content-Type",
+          "type": "header",
+          "description": "multipart/form-data"
+        },
+        {
+          "name": "x-api-key",
+          "type": "header",
+          "description": "密钥验证"
+        },
+        {
+          "name": "file",
+          "type": "body",
+          "description": "图片文件（仅支持图片格式）"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/upload/video",
+      "description": "上传视频文件接口",
+      "params": [
+        {
+          "name": "Content-Type",
+          "type": "header",
+          "description": "multipart/form-data"
+        },
+        {
+          "name": "x-api-key",
+          "type": "header",
+          "description": "密钥验证"
+        },
+        {
+          "name": "file",
+          "type": "body",
+          "description": "视频文件（仅支持MP4格式）"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/dynamic/{filename}",
+      "description": "生成动态缩略图接口",
+      "params": [
+        {
+          "name": "width",
+          "type": "query",
+          "description": "缩略图宽度"
+        },
+        {
+          "name": "quality",
+          "type": "query",
+          "description": "图片质量，范围1-100"
+        }
+      ]
+    }
+  ]
+}
