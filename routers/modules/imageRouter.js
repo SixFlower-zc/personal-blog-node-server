@@ -1,0 +1,97 @@
+const express = require('express')
+const path = require('path')
+const fs = require('fs')
+const sharp = require('sharp')
+const router = express.Router()
+
+// 导入配置
+const { maxWidth, allowImageWidth, defaultQuality } = require('../../config/appConfig')
+
+// 根目录
+const rootDir = path.join(__dirname, '../..')
+const cacheDir = path.join(rootDir, 'public/assets/cache')
+// 创建上传目录
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir, { recursive: true })
+}
+
+/* 动态压缩接口 */
+router.get('/:filename', async (req, res) => {
+  const { filename } = req.params
+  const { width = allowImageWidth[0], quality = defaultQuality } = req.query
+  // 导入配置
+
+  // 参数验证
+  const parsedWidth = parseInt(width)
+  const parsedQuality = parseInt(quality)
+
+  if (width && (isNaN(parsedWidth) || parsedWidth <= 0)) {
+    return res.status(400).send('无效的宽度参数')
+  } else if (!allowImageWidth.includes(parsedWidth)) {
+    // 分辨率限制校验
+    return res.status(400).send(`宽度参数必须为${allowImageWidth.join('、')}中的一个`)
+  }
+
+  if (isNaN(parsedQuality) || parsedQuality < 1 || parsedQuality > 100) {
+    return res.status(400).send(`quality参数必须在1-100之间,默认为${defaultQuality}`)
+  }
+
+  // 文件名验证
+  if (filename.includes('..') || !/^original-/.test(filename)) {
+    return res.status(403).send('非法文件名')
+  }
+
+  // 文件名解析
+  const originalPath = path.join(rootDir, 'public/originals', filename)
+  const cacheName = `${filename}-w${width}-q${quality}.webp`
+  const cachePath = path.join(cacheDir, cacheName)
+
+  try {
+    // 检查原始文件
+    if (!fs.existsSync(originalPath)) {
+      return res.status(404).send('原始图片不存在')
+    }
+
+    // 如果缓存存在直接返回
+    if (fs.existsSync(cachePath)) {
+      return res.sendFile(cachePath)
+    }
+
+    // 测试目录写入权限
+    try {
+      await fs.promises.access(cacheDir, fs.constants.W_OK)
+    } catch (err) {
+      console.error('缓存目录无写入权限:', cacheDir)
+      throw new Error('缓存目录无写入权限')
+    }
+
+    // 生成缓存文件
+    try {
+      const transformer = sharp(originalPath)
+
+      // 先处理图片
+      const buffer = await transformer
+        .resize(width ? parseInt(width) : null)
+        .webp({
+          quality: parseInt(quality),
+          alphaQuality: 80,
+          lossless: false,
+        })
+        .toBuffer()
+
+      // 再写入文件
+      await fs.promises.writeFile(cachePath, buffer)
+
+      // 返回生成的文件
+      res.sendFile(cachePath)
+    } catch (err) {
+      console.error('图片处理具体错误:', err)
+      throw err // 向上抛出错误
+    }
+  } catch (err) {
+    console.error('动态压缩接口具体错误:', err)
+    throw err // 向上抛出错误
+  }
+})
+
+module.exports = router

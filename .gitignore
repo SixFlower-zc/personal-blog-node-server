@@ -29,4 +29,8 @@ coverage
 
 *.tsbuildinfo
 
+# 自定义规则
 */logs/*
+*/originals/*
+*/*/cache/*
+*/*/videos/*

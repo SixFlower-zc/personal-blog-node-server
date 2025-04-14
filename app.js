@@ -5,13 +5,22 @@ const path = require('path')
 const { db } = require('./utils')
 
 // 加载中间件
-const { corsMiddleware, helmetMiddlewares, requestLoggerMiddleware } = require('./middlewares')
+const {
+  corsMiddleware,
+  helmetMiddlewares,
+  requestLoggerMiddleware,
+  apiKeyAuth,
+  rateLimiter,
+} = require('./middlewares')
 
 // 加载环境变量
 require('dotenv').config()
 
 // 引入配置文件
 const { port, base_url } = require('./config/appConfig')
+
+// 引入路由
+const { imageRouter, uploadRouter } = require('./routers')
 
 const app = express()
 
@@ -34,6 +43,10 @@ db(
       console.error('全局错误:', err)
       res.status(500).set().send('服务器内部错误！')
     })
+
+    // 路由挂载
+    app.use('/images', rateLimiter, imageRouter)
+    app.use('/upload', rateLimiter, apiKeyAuth, uploadRouter)
 
     // 404处理
     app.use((req, res, next) => {

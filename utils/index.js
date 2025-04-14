@@ -4,6 +4,7 @@ const { hashPassword, verifyPassword } = require('./modules/passwordUtils')
 const randomFileName = require('./modules/randomFileName')
 const responseFormatter = require('./modules/responseFormatter')
 const validationUtils = require('./modules/validationUtils')
+const getBaseUrl = require('./modules/getBaseUrl')
 
 module.exports = {
   // 数据库连接
@@ -20,4 +21,6 @@ module.exports = {
   responseFormatter,
   // 参数校验
   validationUtils,
+  // 获取请求的基础路径
+  getBaseUrl,
 }
