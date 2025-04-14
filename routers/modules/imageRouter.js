@@ -72,9 +72,13 @@ router.get('/:filename', async (req, res) => {
       // 先处理图片
       const buffer = await transformer
         .resize(width ? parseInt(width) : null)
+        // 将图片转换为WebP格式，并设置WebP的压缩参数
         .webp({
+          // 设置WebP格式的输出质量，取值范围为0-100，数值越高质量越高
           quality: parseInt(quality),
-          alphaQuality: 80,
+          // 设置WebP格式中透明通道的质量，取值范围为0-100，数值越高质量越高
+          alphaQuality: parseInt(quality),
+          // 设置是否以无损模式压缩图片，false表示有损模式，通常可以得到更好的压缩比
           lossless: false,
         })
         .toBuffer()

@@ -1,7 +1,13 @@
 const fs = require('fs')
 const path = require('path')
+const express = require('express')
 
-// 请求日志中间件
+/**
+ * 请求日志中间件
+ * @param {express.Request} req 请求对象
+ * @param {express.Response} res 响应对象
+ * @param {express.NextFunction} next 中间件执行函数
+ */
 const requestLoggerMiddleware = (req, res, next) => {
   // 1. 提取请求的基本信息
   const method = req.method // 请求方法（如 GET、POST 等）

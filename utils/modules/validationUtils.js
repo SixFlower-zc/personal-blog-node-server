@@ -9,7 +9,7 @@
  *   extraFields: string[]
  * }}
  */
-function validateParams(params = {}, schema = {}) {
+const validateParams = (params = {}, schema = {}) => {
   const result = {
     isValid: true,
     requiredErrors: [],

@@ -50,7 +50,7 @@ db(
 
     // 404处理
     app.use((req, res, next) => {
-      res.status(404).set().send('<h1>你访问的页面不存在</h1>')
+      res.status(404).send('<h1>你访问的页面不存在</h1>')
       // 重定向到404页面
       // res.redirect('/html/404.html')
     })
