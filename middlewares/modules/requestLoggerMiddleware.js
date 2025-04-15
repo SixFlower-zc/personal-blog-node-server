@@ -17,7 +17,7 @@ const requestLoggerMiddleware = (req, res, next) => {
   const timestamp = new Date().toISOString() // 当前时间
 
   // 2. 格式化日志内容
-  const logMessage = `${timestamp} ${method} ${url} IP: ${ip} User-Agent: ${userAgent}`
+  const logMessage = `Timestamp: ${timestamp} Method: ${method} IP: ${ip} User-Agent: ${userAgent} URL: ${url}`
 
   // 3. 提取日志文件路径
   const logDirectory = path.join(__dirname, '../..', 'public/logs')

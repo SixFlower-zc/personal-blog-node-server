@@ -5,7 +5,7 @@ const sharp = require('sharp')
 const router = express.Router()
 
 // 导入配置
-const { maxWidth, allowImageWidth, defaultQuality } = require('../../config/appConfig')
+const { allowImageWidth, defaultQuality, allowImageQuality } = require('../../config/appConfig')
 
 // 根目录
 const rootDir = path.join(__dirname, '../..')
@@ -18,22 +18,25 @@ if (!fs.existsSync(cacheDir)) {
 /* 动态压缩接口 */
 router.get('/:filename', async (req, res) => {
   const { filename } = req.params
-  const { width = allowImageWidth[0], quality = defaultQuality } = req.query
+  const { width = allowImageWidth[0], quality = allowImageQuality[0] } = req.query
   // 导入配置
 
   // 参数验证
   const parsedWidth = parseInt(width)
   const parsedQuality = parseInt(quality)
 
-  if (width && (isNaN(parsedWidth) || parsedWidth <= 0)) {
-    return res.status(400).send('无效的宽度参数')
-  } else if (!allowImageWidth.includes(parsedWidth)) {
-    // 分辨率限制校验
-    return res.status(400).send(`宽度参数必须为${allowImageWidth.join('、')}中的一个`)
+  // 图片宽度限制校验
+  if (!allowImageWidth.includes(parsedWidth)) {
+    return res
+      .status(400)
+      .send(`无效的宽度参数,宽度参数必须为${allowImageWidth.join('、')}中的一个`)
   }
 
-  if (isNaN(parsedQuality) || parsedQuality < 1 || parsedQuality > 100) {
-    return res.status(400).send(`quality参数必须在1-100之间,默认为${defaultQuality}`)
+  // 质量参数校验
+  if (!allowImageQuality.includes(parsedQuality)) {
+    return res
+      .status(400)
+      .send(`无效的质量参数,质量参数必须为${allowImageQuality.join('、')}中的一个`)
   }
 
   // 文件名验证

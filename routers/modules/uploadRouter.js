@@ -11,8 +11,8 @@ const { getBaseUrl, randomFileName } = require('../../utils')
 const {
   maxImageSize,
   maxVideoSize,
-  allowImageWidth,
-  defaultQuality,
+  allowImageExt,
+  allowVideoExt,
 } = require('../../config/appConfig')
 
 const router = express.Router()
@@ -40,7 +40,7 @@ router.post('/image', (req, res) => {
     maxFileSize: maxImageSize,
     filter: (part) => {
       // 增强文件类型白名单
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'] // 可选扩展类型
+      const allowedTypes = allowImageExt.map((ext) => `image/${ext}`) // 可选扩展类型
       return part.mimetype && allowedTypes.includes(part.mimetype)
     }, // 过滤文件类型
     filename: (name, ext) => {
@@ -56,7 +56,9 @@ router.post('/image', (req, res) => {
 
     // 如果没有上传文件
     if (!files.file) {
-      return res.status(400).send('没有上传文件')
+      return res
+        .status(400)
+        .send(`没有上传文件，请检查上传文件类型是否为${allowImageExt.join('、')}`)
     }
 
     // 拼接并返回用户需要访问文件时的 URL
@@ -65,15 +67,9 @@ router.post('/image', (req, res) => {
       //! 拼接图片 URL images 对应路由
       const fileUrl = baseUrl + '/images/' + file.newFilename
 
-      const url = {}
-      for (let i = 0; i < allowImageWidth.length; i++) {
-        url[`url_${allowImageWidth[i]}`] =
-          fileUrl + `?width=${allowImageWidth[i]}&quality=${defaultQuality}`
-      }
-
       return {
         filename: file.newFilename,
-        url,
+        url: fileUrl,
       }
     })
     return res.status(200).send({ url })
@@ -88,7 +84,17 @@ router.post('/video', (req, res) => {
     uploadDir: videosDir,
     keepExtensions: true,
     maxFileSize: maxVideoSize,
-    filters: ['video/mp4'],
+    filter: (part) => {
+      // 增强文件类型白名单
+      const allowedTypes = allowVideoExt.map((ext) => `video/${ext}`) // 可选扩展类型
+
+      // 类型错误处理
+      if (!allowedTypes.includes(part.mimetype)) {
+        return false
+      }
+
+      return part.mimetype && allowedTypes.includes(part.mimetype)
+    }, // 过滤文件类型
     filename: (name, ext) => {
       return `${randomFileName(ext)}`
     },
@@ -101,7 +107,9 @@ router.post('/video', (req, res) => {
 
     // 如果没有上传文件
     if (!files.file) {
-      return res.status(400).send('没有上传文件')
+      return res
+        .status(400)
+        .send(`没有上传文件，请检查上传文件类型是否为${allowVideoExt.join('、')}`)
     }
 
     // 拼接并返回用户需要访问文件时的 URL
