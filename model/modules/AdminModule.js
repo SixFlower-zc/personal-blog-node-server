@@ -1,5 +1,6 @@
 const { Schema, model } = require('mongoose')
 const { role } = require('../../config/adminConfig')
+const { base_url } = require('../../config/appConfig')
 
 // 管理员模型的schema
 const adminSchema = new Schema(
@@ -17,14 +18,13 @@ const adminSchema = new Schema(
       type: String,
       required: [true, '密码不能为空'],
       trim: true,
-      minlength: 10,
     },
 
     /** 头像 */
     avatar: {
       type: String,
       trim: true,
-      maxlength: 200,
+      default: `${base_url}/images/original-default_avatar.png`,
     },
 
     /** 昵称 */
@@ -51,9 +51,9 @@ const adminSchema = new Schema(
 
     /** 权限等级 */
     role: {
-      type: String,
+      type: Number,
       enum: role.map((item) => item.value),
-      default: 'admin',
+      default: role[0].value,
     },
 
     /** 权限路由 */
@@ -68,6 +68,14 @@ const adminSchema = new Schema(
       enum: ['active', 'inactive'],
       default: 'active',
     },
+
+    /** 操作日志 */
+    logs: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'adminlogs',
+      },
+    ],
 
     /** 最后登录时间 */
     lastLoginTime: Date,
@@ -84,7 +92,14 @@ const adminSchema = new Schema(
       type: Boolean,
       default: false,
     },
+
+    /** 创建时间 */
+    create_time: Date,
+
+    /** 更新时间 */
+    update_time: Date,
   },
+
   {
     // 文档在创建时自动将create_time和update_time字段设置为当前时间，文档更新时自动更新update_time字段
     timestamps: { createdAt: 'create_time', updatedAt: 'update_time' },

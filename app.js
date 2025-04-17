@@ -20,7 +20,7 @@ require('dotenv').config()
 const { port, base_url } = require('./config/appConfig')
 
 // 引入路由
-const { imageRouter, uploadRouter } = require('./routers')
+const { imageRouter, uploadRouter, userRouter } = require('./routers')
 
 const app = express()
 
@@ -47,6 +47,7 @@ db(
     // 路由挂载
     app.use('/images', rateLimiter, imageRouter)
     app.use('/upload', rateLimiter, apiKeyAuth, uploadRouter)
+    app.use('/user', userRouter)
 
     // 404处理
     app.use((req, res, next) => {

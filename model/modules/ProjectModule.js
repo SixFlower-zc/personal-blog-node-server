@@ -22,12 +22,13 @@ const projectSchema = new Schema(
       ],
       default: [],
     },
+    // 需要手动校验地址是否有效
     /** 在线演示地址（可选） */
-    demoUrl: { type: String, validate: isURL },
+    demoUrl: { type: String },
     /** GitHub仓库地址（可选） */
-    githubUrl: { type: String, validate: isURL },
+    githubUrl: { type: String },
     /** gitee仓库地址（可选） */
-    giteeUrl: { type: String, validate: isURL },
+    giteeUrl: { type: String },
     /** 封面图 */
     coverImage: {
       type: Schema.Types.ObjectId,
@@ -39,11 +40,23 @@ const projectSchema = new Schema(
     /** 项目权重（数字越大排序越靠前） */
     weight: { type: Number, default: 0 },
 
+    /** 公开状态 */
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
+
     /** 删除状态 */
     isDeleted: {
       type: Boolean,
       default: false,
     },
+
+    /** 创建时间 */
+    create_time: Date,
+
+    /** 更新时间 */
+    update_time: Date,
   },
   {
     // 文档在创建时自动将create_time和update_time字段设置为当前时间，文档更新时自动更新update_time字段

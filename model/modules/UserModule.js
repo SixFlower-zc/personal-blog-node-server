@@ -1,5 +1,6 @@
 const { Schema, model } = require('mongoose')
 const CounterModel = require('./CounterModel')
+const { base_url } = require('../../config/appConfig')
 
 // 用户模型的schema
 const userSchema = new Schema(
@@ -17,19 +18,20 @@ const userSchema = new Schema(
       type: String,
       required: [true, '密码不能为空'],
       trim: true,
-      minlength: 10,
     },
 
     /** 头像 */
     avatar: {
       type: String,
-      default: '',
+      trim: true,
+      default: `${base_url}/images/original-default_avatar.png`,
     },
 
     /** 昵称 */
     nickname: {
       type: String,
       trim: true,
+      minlength: 1,
       maxlength: 10,
       required: [true, '昵称不能为空'],
     },
@@ -37,7 +39,7 @@ const userSchema = new Schema(
     /** 性别 */
     gender: {
       type: String,
-      enum: ['male', 'female', ' hidden'],
+      enum: ['male', 'female', 'hidden'],
       default: 'hidden',
     },
 
@@ -74,7 +76,6 @@ const userSchema = new Schema(
       trim: true,
       lowercase: true,
       maxlength: 100,
-      unique: true,
       index: true,
       match: [
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
@@ -122,6 +123,12 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+
+    /** 创建时间 */
+    create_time: Date,
+
+    /** 更新时间 */
+    update_time: Date,
   },
   {
     // 文档在创建时自动将create_time和update_time字段设置为当前时间，文档更新时自动更新update_time字段
@@ -162,28 +169,22 @@ const userSchema = new Schema(
   }
 )
 
-// 每次保存用户认证信息时，生成providerId
-userSchema.pre('save', async function (next) {
-  // 如果当前文档是新创建的
-  if (this.isNew) {
+// 在验证之前生成uid
+userSchema.pre('validate', async function (next) {
+  // 如果当前文档是新创建的且uid字段缺失
+  if (this.isNew && !this.uid) {
     // 定义计数器的名称，这里假设为'providerIdCounter'
     const counterName = 'providerIdCounter'
 
     // 从数据库中查找或创建一个名为'providerIdCounter'的计数器文档，并将seq字段自增1
-    // findOneAndUpdate方法用于查找指定条件的文档并更新它
     const counter = await CounterModel.findOneAndUpdate(
       { name: counterName },
-      // $inc 用于自增计数器
       { $inc: { seq: 1 } },
-      // { new: true } 表示返回更新后的文档
-      // { upsert: true } 表示如果找不到指定条件的文档，则创建一个新的文档
       { new: true, upsert: true }
     )
 
     // 将自增后的seq值转换为字符串，并确保其长度为6位，不足6位时前面补零
     this.uid = counter.seq.toString().padStart(6, '0')
-
-    // 调用next()继续执行保存操作
   }
 
   next()

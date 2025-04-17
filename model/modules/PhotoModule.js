@@ -29,11 +29,56 @@ const photoSchema = new Schema(
       ref: 'albums',
     },
 
+    /** 图片元数据 */
+    metadata: {
+      type: {
+        /** 文件格式 */
+        format: {
+          type: String,
+          trim: true,
+          maxlength: 50,
+        },
+        /** 文件大小（字节） */
+        size: {
+          type: Number,
+        },
+        /** 分辨率 */
+        resolution: {
+          type: String,
+          trim: true,
+          maxlength: 50,
+        },
+        /** 创建时间 */
+        creationTime: {
+          type: Date,
+        },
+        /** 其他元数据 */
+        other: {
+          type: String,
+          trim: true,
+          maxlength: 500,
+        },
+      },
+      required: false,
+    },
+
+    /** 公开状态 */
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
+
     /** 删除状态 */
     isDeleted: {
       type: Boolean,
       default: false,
     },
+
+    /** 创建时间 */
+    create_time: Date,
+
+    /** 更新时间 */
+    update_time: Date,
   },
   {
     // 文档在创建时自动将create_time和update_time字段设置为当前时间，文档更新时自动更新update_time字段

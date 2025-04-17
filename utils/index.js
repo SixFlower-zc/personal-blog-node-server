@@ -2,8 +2,7 @@ const db = require('./modules/db')
 const { encryption, verification } = require('./modules/JwtCode')
 const { hashPassword, verifyPassword } = require('./modules/passwordUtils')
 const randomFileName = require('./modules/randomFileName')
-const responseFormatter = require('./modules/responseFormatter')
-const validationUtils = require('./modules/validationUtils')
+const formatResponse = require('./modules/responseFormatter')
 const getBaseUrl = require('./modules/getBaseUrl')
 
 module.exports = {
@@ -18,9 +17,7 @@ module.exports = {
   // 生成随机文件名
   randomFileName,
   // 响应格式化
-  responseFormatter,
-  // 参数校验
-  validationUtils,
+  formatResponse,
   // 获取请求的基础路径
   getBaseUrl,
 }

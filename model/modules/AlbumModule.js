@@ -55,11 +55,23 @@ const albumSchema = new Schema(
       },
     ],
 
+    /** 公开状态 */
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
+
     /** 删除状态 */
     isDeleted: {
       type: Boolean,
       default: false,
     },
+
+    /** 创建时间 */
+    create_time: Date,
+
+    /** 更新时间 */
+    update_time: Date,
   },
   {
     // 文档在创建时自动将create_time和update_time字段设置为当前时间，文档更新时自动更新update_time字段
