@@ -5,7 +5,8 @@ const sharp = require('sharp')
 const router = express.Router()
 
 // 导入配置
-const { allowImageWidth, defaultQuality, allowImageQuality } = require('../../config/appConfig')
+const { allowImageWidth, allowImageQuality } = require('../../config/appConfig')
+const { formatResponse } = require('../../utils')
 
 // 根目录
 const rootDir = path.join(__dirname, '../..')
@@ -15,7 +16,7 @@ if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir, { recursive: true })
 }
 
-/* 动态压缩接口 */
+// !: 图片动态压缩接口
 router.get('/:filename', async (req, res) => {
   const { filename } = req.params
   const { width = allowImageWidth[0], quality = allowImageQuality[0] } = req.query
@@ -27,21 +28,25 @@ router.get('/:filename', async (req, res) => {
 
   // 图片宽度限制校验
   if (!allowImageWidth.includes(parsedWidth)) {
-    return res
-      .status(400)
-      .send(`无效的宽度参数,宽度参数必须为${allowImageWidth.join('、')}中的一个`)
+    return res.status(400).json(
+      formatResponse(0, `无效的图片宽度参数,图片宽度必须为${allowImageWidth.join('、')}中的一个`, {
+        allowImageWidth,
+      })
+    )
   }
 
   // 质量参数校验
   if (!allowImageQuality.includes(parsedQuality)) {
-    return res
-      .status(400)
-      .send(`无效的质量参数,质量参数必须为${allowImageQuality.join('、')}中的一个`)
+    return res.status(400).json(
+      formatResponse(0, `无效的质量参数,质量参数必须为${allowImageQuality.join('、')}中的一个`, {
+        allowImageQuality,
+      })
+    )
   }
 
   // 文件名验证
   if (filename.includes('..') || !/^original-/.test(filename)) {
-    return res.status(403).send('非法文件名')
+    return res.status(403).json(forematResponse(0, '非法文件名', {}))
   }
 
   // 文件名解析
@@ -52,7 +57,7 @@ router.get('/:filename', async (req, res) => {
   try {
     // 检查原始文件
     if (!fs.existsSync(originalPath)) {
-      return res.status(404).send('原始图片不存在')
+      return res.status(404).json(formatResponse(0, '文件不存在', {}))
     }
 
     // 如果缓存存在直接返回

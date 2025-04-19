@@ -4,6 +4,9 @@ const { hashPassword, verifyPassword } = require('./modules/passwordUtils')
 const randomFileName = require('./modules/randomFileName')
 const formatResponse = require('./modules/responseFormatter')
 const getBaseUrl = require('./modules/getBaseUrl')
+const sendEmail = require('./modules/email')
+const validateCaptcha = require('./modules/validateCaptcha')
+const generateNickname = require('./modules/generateNickname')
 
 module.exports = {
   // 数据库连接
@@ -20,4 +23,10 @@ module.exports = {
   formatResponse,
   // 获取请求的基础路径
   getBaseUrl,
+  // 发送邮件工具
+  sendEmail,
+  // 验证码验证
+  validateCaptcha,
+  // 生成昵称
+  generateNickname,
 }

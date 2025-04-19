@@ -1,13 +1,13 @@
 const { Schema, model } = require('mongoose')
 
-/** 单张图片模型 */
-const photoSchema = new Schema(
+/** 视频模型 */
+const videoSchema = new Schema(
   {
-    /** 图片上传者 */
+    /** 视频上传者 */
     creator: {
       type: Schema.Types.ObjectId,
       ref: 'users',
-      required: [true, '图片上传者不能为空'],
+      required: [true, '视频上传者不能为空'],
     },
 
     /** 文件名 */
@@ -17,19 +17,19 @@ const photoSchema = new Schema(
       unique: true,
     },
 
-    /** 图片链接，压缩参数省略 */
+    /** 视频链接 */
     url: {
       type: String,
-      required: [true, '图片链接不能为空'],
+      required: [true, '视频链接不能为空'],
     },
 
-    /** 所属图集（可为空，表示未归类图片） */
+    /** 所属图集（可为空，表示未归类视频） */
     album: {
       type: Schema.Types.ObjectId,
       ref: 'albums',
     },
 
-    /** 图片元数据 */
+    /** 视频元数据 */
     metadata: {
       type: {
         /** 文件格式 */
@@ -90,14 +90,15 @@ const photoSchema = new Schema(
         delete ret.create_time
         delete ret.update_time
         delete ret.isPublic
+
         return ret
       },
     },
   }
 )
 
-photoSchema.index({ creator: 1, filename: 1, create_time: 1 }, { unique: true }) // 建立索引
+videoSchema.index({ creator: 1, filename: 1, create_time: 1 }, { unique: true }) // 建立索引
 
-const PhotoModule = model('photos', photoSchema)
+const VideoModule = model('videos', videoSchema)
 
-module.exports = PhotoModule
+module.exports = VideoModule

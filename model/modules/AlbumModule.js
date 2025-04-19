@@ -47,6 +47,20 @@ const albumSchema = new Schema(
       required: [true, '至少需要一张图片'], // 确保photos数组不能为空
     },
 
+    /** 关联的视频列表 */
+    videos: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'videos',
+      },
+    ],
+
+    /** 访问量 */
+    views: {
+      type: Number,
+      default: 0,
+    },
+
     /** 图集标签 */
     tags: [
       {
@@ -78,21 +92,6 @@ const albumSchema = new Schema(
     timestamps: { createdAt: 'create_time', updatedAt: 'update_time' },
     // 禁用 __v 版本字段
     versionKey: false,
-    // 文档在查询普通对象时，将返回的字段中包含虚拟字段
-    toObject: {
-      virtuals: true,
-      transform: (doc, ret) => {
-        // 如果文档已模拟删除，则不返回任何字段
-        if (ret.isDeleted) {
-          return null
-        }
-        // 显式将_id转换为id字段
-        ret.id = ret._id.toString()
-        // 可选：删除 _id（根据需求）
-        delete ret._id
-        return ret
-      },
-    },
     // 文档在查询JSON对象时，将返回的字段中包含虚拟字段
     toJSON: {
       virtuals: true,

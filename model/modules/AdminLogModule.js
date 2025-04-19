@@ -44,10 +44,6 @@ const adminLogSchema = new Schema(
   {
     // 禁用 __v 版本字段
     versionKey: false,
-    // 文档在查询普通对象时，将返回的字段中包含虚拟字段
-    toObject: {
-      virtuals: true,
-    },
     // 文档在查询JSON对象时，将返回的字段中包含虚拟字段
     toJSON: {
       virtuals: true,

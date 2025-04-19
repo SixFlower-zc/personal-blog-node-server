@@ -1,6 +1,6 @@
 // 导入 mongoose 模块
 const mongoose = require('mongoose')
-const { DBHOST, DBPORT, DBNAME } = require('../../config/dbConfig')
+const { DBHOST, DBPORT, DBNAME, DBUSER, DBPASS } = require('../../config/dbConfig')
 
 /**
  * 连接数据库
@@ -21,6 +21,7 @@ const db = (
 ) => {
   // 连接数据库, test 是数据库名称(如果不存在,会自动创建)
   mongoose.connect(`mongodb://${DBHOST}:${DBPORT}/${DBNAME}`)
+  // mongoose.connect(`mongodb://${DBUSER}:${DBPASS}@${DBHOST}:${DBPORT}/${DBNAME}`)
 
   // 设置连接成功的回调
   mongoose.connection.once('open', () => {

@@ -6,6 +6,7 @@ const DocModule = require('./modules/DocModule')
 const PhotoModule = require('./modules/PhotoModule')
 const ProjectModule = require('./modules/ProjectModule')
 const UserModule = require('./modules/UserModule')
+const VideoModule = require('./modules/VideoModule')
 
 module.exports = {
   AdminLogModule,
@@ -16,4 +17,5 @@ module.exports = {
   PhotoModule,
   ProjectModule,
   UserModule,
+  VideoModule,
 }

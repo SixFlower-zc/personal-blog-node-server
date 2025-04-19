@@ -14,7 +14,7 @@ module.exports = {
   // 跨域中间件
   corsMiddleware,
   // 限流中间件
-  rateLimiter,
+  ...rateLimiter,
   // body解析中间件
   jsonParser,
   urlencodedParser,

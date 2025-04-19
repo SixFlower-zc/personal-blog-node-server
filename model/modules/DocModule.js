@@ -65,19 +65,6 @@ const docSchema = new Schema(
     // 文档在创建时自动将create_time和update_time字段设置为当前时间，文档更新时自动更新update_time字段
     timestamps: { createdAt: 'create_time', updatedAt: 'update_time' }, // 文档在查询普通对象时，将返回的字段中包含虚拟字段
     versionKey: false, // 禁用 __v 版本字段
-    toObject: {
-      virtuals: true, // 包含虚拟字段
-      transform: (doc, ret) => {
-        // 如果文档已模拟删除，则不返回任何字段
-        if (ret.isDeleted) {
-          return null
-        }
-        // 显式将_id转换为id字段
-        ret.id = ret._id.toString() // 显式添加 id 字段
-        delete ret._id // 可选：删除 _id（根据需求）
-        return ret
-      },
-    },
     // 文档在查询json对象时，将返回的字段中包含虚拟字段
     toJSON: {
       virtuals: true,

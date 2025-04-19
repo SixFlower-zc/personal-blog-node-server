@@ -1,6 +1,7 @@
 const { Schema, model } = require('mongoose')
 const CounterModel = require('./CounterModel')
 const { base_url } = require('../../config/appConfig')
+const { generateNickname } = require('../../utils')
 
 // 用户模型的schema
 const userSchema = new Schema(
@@ -11,6 +12,7 @@ const userSchema = new Schema(
       required: true,
       unique: true,
       index: true,
+      default: '000000',
     },
 
     /** 密码 */
@@ -33,7 +35,7 @@ const userSchema = new Schema(
       trim: true,
       minlength: 1,
       maxlength: 10,
-      required: [true, '昵称不能为空'],
+      default: generateNickname(),
     },
 
     /** 性别 */
@@ -54,6 +56,7 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       maxlength: 100,
+      default: '',
     },
 
     /** 电话号码 */
@@ -72,6 +75,7 @@ const userSchema = new Schema(
     /** 电子邮件 */
     email: {
       type: String,
+      required: [true, '邮箱不能为空'],
       unique: true,
       trim: true,
       lowercase: true,
@@ -88,7 +92,7 @@ const userSchema = new Schema(
       type: Number,
       default: 0,
       min: 0,
-      max: 10,
+      max: 5,
     },
 
     /** 状态 */
@@ -101,6 +105,7 @@ const userSchema = new Schema(
     /** 注册IP地址 */
     registerIP: {
       type: String,
+      required: [true, '注册IP地址不能为空'],
       trim: true,
       maxlength: 50,
     },
@@ -110,18 +115,31 @@ const userSchema = new Schema(
       type: String,
       trim: true,
       maxlength: 50,
+      default: '',
     },
 
     /** 最后登录时间 */
-    lastLoginTime: Date,
+    lastLoginTime: {
+      type: Date,
+      default: new Date(),
+    },
 
     /** 账户解锁时间 */
-    lockUntil: Date,
+    lockUntil: {
+      type: Date,
+      default: new Date(),
+    },
 
     /** 账户是否注销 */
     isDeleted: {
       type: Boolean,
       default: false,
+    },
+
+    /** 账户危险等级 */
+    riskLevel: {
+      type: Number,
+      default: 0,
     },
 
     /** 创建时间 */
@@ -135,23 +153,6 @@ const userSchema = new Schema(
     timestamps: { createdAt: 'create_time', updatedAt: 'update_time' },
     // 禁用 __v 版本字段
     versionKey: false,
-    // 文档在查询普通对象时，将返回的字段中包含虚拟字段
-    toObject: {
-      virtuals: true,
-      transform: (doc, ret) => {
-        // 如果文档已模拟删除，则不返回任何字段
-        if (ret.isDeleted) {
-          return null
-        }
-        // 显式将_id转换为id字段
-        ret.id = ret._id.toString()
-        // 可选：删除 _id（根据需求）
-        delete ret._id
-        // 删除密码字段，确保不返回密码
-        delete ret.password
-        return ret
-      },
-    },
     // 文档在查询JSON对象时，将返回的字段中包含虚拟字段
     toJSON: {
       virtuals: true,
@@ -161,18 +162,32 @@ const userSchema = new Schema(
         }
         ret.id = ret._id.toString()
         delete ret._id
-        // 删除密码字段，确保不返回密码
+        // 删除敏感字段
         delete ret.password
+        delete ret.isDeleted
+        delete ret.failedAttempts
+        delete ret.lockUntil
+        delete ret.status
+        delete ret.registerIP
+        delete ret.lastLoginIP
+        delete ret.lastLoginTime
+        delete ret.update_time
+        delete ret.create_time
+        delete ret.riskLevel
         return ret
       },
     },
   }
 )
 
-// 在验证之前生成uid
-userSchema.pre('validate', async function (next) {
+/**
+ * 在保存文档时，自动生成uid·
+ * @param {Function} next - Mongoose 中间件的 next 回调函数
+ * @returns {Promise<void>}
+ */
+userSchema.pre('save', async function (next) {
   // 如果当前文档是新创建的且uid字段缺失
-  if (this.isNew && !this.uid) {
+  if (this.isNew) {
     // 定义计数器的名称，这里假设为'providerIdCounter'
     const counterName = 'providerIdCounter'
 

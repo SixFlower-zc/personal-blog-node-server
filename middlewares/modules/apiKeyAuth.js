@@ -1,4 +1,5 @@
 const express = require('express')
+const { formatResponse } = require('../../utils')
 
 /**
  * API密钥验证中间件
@@ -21,14 +22,14 @@ const apiKeyAuth = (req, res, next) => {
 
   // 如果客户端未提供API密钥，则返回401错误
   if (!clientKey) {
-    return res.status(401).json({ error: '缺少API密钥' })
+    return res.status(401).json(formatResponse(0, '未提供API密钥', {}))
   }
 
   // 如果客户端提供的API密钥不在配置的API密钥中，则返回401错误
   if (validKeys.has(clientKey)) {
     next()
   } else {
-    res.status(401).json({ error: '无效的API密钥' })
+    res.status(401).json(formatResponse(0, 'API密钥错误', {}))
   }
 }
 
