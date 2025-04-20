@@ -42,16 +42,6 @@ const photoSchema = new Schema(
         size: {
           type: Number,
         },
-        /** 分辨率 */
-        resolution: {
-          type: String,
-          trim: true,
-          maxlength: 50,
-        },
-        /** 创建时间 */
-        creationTime: {
-          type: Date,
-        },
       },
     },
 

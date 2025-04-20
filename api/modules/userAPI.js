@@ -1,5 +1,5 @@
 const dayjs = require('dayjs')
-const UserModule = require('../../model/modules/UserModule')
+const { UserModule } = require('../../model')
 const { hashPassword, verifyPassword } = require('../../utils')
 
 /**
