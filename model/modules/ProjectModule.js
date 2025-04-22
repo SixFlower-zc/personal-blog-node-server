@@ -30,10 +30,9 @@ const projectSchema = new Schema(
     /** gitee仓库地址（可选） */
     giteeUrl: { type: String },
     /** 封面图 */
-    coverImage: {
+    cover: {
       type: Schema.Types.ObjectId,
       ref: 'photos',
-      required: [true, '封面图不能为空'],
     },
     /** 是否置顶展示（手动控制） */
     isFeatured: { type: Boolean, default: false },
@@ -43,7 +42,7 @@ const projectSchema = new Schema(
     /** 公开状态 */
     isPublic: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     /** 删除状态 */
@@ -69,16 +68,43 @@ const projectSchema = new Schema(
         if (ret.isDeleted) {
           return null
         }
-        ret.id = ret._id.toString()
-        delete ret._id
-        return ret
+        const {
+          _id,
+          creator,
+          title,
+          description,
+          cover,
+          techStack,
+          demoUrl,
+          githubUrl,
+          giteeUrl,
+          isFeatured,
+          weight,
+          isPublic,
+        } = ret
+        return {
+          id: _id.toString(),
+          creator: creator.toString(),
+          title,
+          description,
+          cover: cover ? cover.toString() : null,
+          techStack,
+          demoUrl,
+          githubUrl,
+          giteeUrl,
+          isFeatured,
+          weight,
+          isPublic,
+        }
       },
     },
   }
 )
 
-// 建立索引
-projectSchema.index({ title: 1, weight: -1, create_time: -1 }, { unique: true })
+// 建立组合搜索索引，加速查询
+projectSchema.index({ creator: 1 })
+projectSchema.index({ creator: 1, isPublic: 1 })
+projectSchema.index({ creator: 1, isPublic: 1, create_time: -1 })
 
 const ProjectModule = model('projects', projectSchema)
 

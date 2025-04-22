@@ -21,7 +21,7 @@ const {
 const { port, base_url } = require('./config/appConfig')
 
 // 引入路由
-const { imageRouter, uploadRouter, userRouter, captchaRouter } = require('./routers')
+const { imageRouter, uploadRouter, userRouter, captchaRouter, albumRouter } = require('./routers')
 
 const app = express()
 
@@ -47,6 +47,7 @@ db(
     app.use('/upload', uploadRouter)
     app.use('/user', userRouter)
     app.use('/captcha', captchaRouter)
+    app.use('/album', albumRouter)
 
     // 404处理
     app.use((req, res, next) => {

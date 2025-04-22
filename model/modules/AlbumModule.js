@@ -17,7 +17,7 @@ const albumSchema = new Schema(
     title: {
       type: String,
       required: [true, '图集标题不能为空'],
-      maxlength: 50,
+      maxlength: 20,
       trim: true,
     },
 
@@ -25,27 +25,23 @@ const albumSchema = new Schema(
     description: {
       type: String,
       default: '',
-      maxlength: 500,
+      maxlength: 200,
       trim: true,
     },
 
     /** 封面图片引用 - 必须属于本图集中的图片 */
-    coverPhoto: {
+    cover: {
       type: Schema.Types.ObjectId,
       ref: 'photos',
-      required: [true, '封面图片不能为空'],
     },
 
     /** 关联的图片列表（按上传顺序排列） */
-    photos: {
-      type: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: 'photos',
-        },
-      ],
-      required: [true, '至少需要一张图片'], // 确保photos数组不能为空
-    },
+    photos: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'photos',
+      },
+    ],
 
     /** 关联的视频列表 */
     videos: [
@@ -55,12 +51,6 @@ const albumSchema = new Schema(
       },
     ],
 
-    /** 访问量 */
-    views: {
-      type: Number,
-      default: 0,
-    },
-
     /** 图集标签 */
     tags: [
       {
@@ -69,10 +59,24 @@ const albumSchema = new Schema(
       },
     ],
 
+    /** 访问量 */
+    views: {
+      type: Number,
+      default: 0,
+    },
+
+    /** 访问者列表 */
+    visitors: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'users',
+      },
+    ],
+
     /** 公开状态 */
     isPublic: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     /** 删除状态 */
@@ -99,16 +103,42 @@ const albumSchema = new Schema(
         if (ret.isDeleted) {
           return null
         }
-        ret.id = ret._id.toString()
-        delete ret._id
-        return ret
+        const {
+          _id,
+          creator,
+          title,
+          description,
+          cover,
+          photos = [],
+          videos = [],
+          tags,
+          views,
+          visitors = [],
+        } = ret
+        return {
+          id: _id.toString(),
+          creator,
+          title,
+          description,
+          cover: cover ? cover.toString() : null,
+          photos: photos.map((photo) => photo.toString()),
+          videos: videos.map((video) => video.toString()),
+          tags,
+          views,
+          visitors: visitors.map((visitor) => visitor.toString()),
+        }
       },
     },
   }
 )
 
-// 建立组合搜索索引，加速查询
-albumSchema.index({ creator: 1, create_time: -1 }, { unique: true })
+// 自定义验证器
+albumSchema.pre('validate', function (next) {
+  if (this.photos.length === 0 && this.videos.length === 0) {
+    return next(new Error('至少需要上传一张图片或一个视频'))
+  }
+  next()
+})
 
 // 使用pre中间件在保存数据前进行验证
 albumSchema.pre('save', async function (next) {
@@ -143,6 +173,12 @@ albumSchema.pre('save', async function (next) {
   // 如果验证通过，调用next()继续执行保存操作
   next()
 })
+
+// 建立组合搜索索引，加速查询
+albumSchema.index({ creator: 1 })
+albumSchema.index({ creator: 1, create_time: -1 })
+albumSchema.index({ creator: 1, isPublic: 1 })
+albumSchema.index({ creator: 1, isPublic: 1, create_time: -1 })
 
 const AlbumModule = model('albums', albumSchema)
 

@@ -14,7 +14,7 @@ module.exports = {
   adminLogRouter,
   // 管理员路由
   adminRouter,
-  // 相册路由
+  // 图集路由
   albumRouter,
   // 验证码路由
   captcha,

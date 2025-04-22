@@ -15,6 +15,7 @@ const {
   allowVideoExt,
 } = require('../../config/appConfig')
 const { validateUpload } = require('../../lib')
+const { createPhoto, createVideo } = require('../../api/modules/uploadAPI')
 
 const router = express.Router()
 
@@ -49,7 +50,7 @@ router.post('/image', [validateUpload], (req, res) => {
     }, // 自定义文件名
   })
 
-  form.parse(req, (err, fields, files) => {
+  form.parse(req, async (err, fields, files) => {
     if (err) {
       // 上传失败
       return res.status(500).json(formatResponse(0, '上传失败', { error: err.message }))
@@ -66,27 +67,32 @@ router.post('/image', [validateUpload], (req, res) => {
 
     // 拼接并返回用户需要访问文件时的 URL
     // img 字段对应上传文件的名称,即发起上传请求时的键名
-    const url = files.file.map((file) => {
-      //! 拼接图片 URL images 对应路由
-      const fileUrl = baseUrl + '/images/' + file.newFilename
+    const urls = await Promise.all(
+      files.file.map(async (file) => {
+        //! 拼接图片 URL images 对应路由
+        const fileUrl = baseUrl + '/images/' + file.newFilename
 
-      console.log('文件名', file.newFilename)
-      console.log('图片连接', fileUrl)
-      console.log('图片元数据', {
-        format: file.mimetype.split('/')[1], // 图片格式
-        size: file.size, // 字节
+        const result = await createPhoto({
+          filename: file.newFilename,
+          url: fileUrl,
+          metadata: {
+            format: file.mimetype.split('/')[1], // 图片格式
+            size: file.size, // 字节
+          },
+        })
+
+        return {
+          filename: file.newFilename,
+          id: result.id,
+          url: fileUrl,
+        }
       })
+    )
 
-      return {
-        filename: file.newFilename,
-        url: fileUrl,
-      }
-    })
-    return res.status(200).json(formatResponse(1, '上传成功', { url }))
+    return res.status(200).json(formatResponse(1, '上传成功', { photos: urls }))
   })
 })
 
-// !: 上传视频接口
 // !: 上传视频接口
 router.post('/video', [validateUpload], (req, res) => {
   const baseUrl = getBaseUrl(req)
@@ -106,7 +112,7 @@ router.post('/video', [validateUpload], (req, res) => {
     },
   })
 
-  form.parse(req, (err, fields, files) => {
+  form.parse(req, async (err, fields, files) => {
     if (err) {
       // 上传失败
       return res.status(500).json(formatResponse(0, '上传失败', { error: err.message }))
@@ -123,23 +129,29 @@ router.post('/video', [validateUpload], (req, res) => {
 
     // 拼接并返回用户需要访问文件时的 URL
     // file 字段对应上传文件的名称,即发起上传请求时的键名
-    const url = files.file.map((file) => {
-      // 拼接视频 URL videos 对应路由
-      const fileUrl = baseUrl + '/videos/' + file.newFilename
+    const urls = await Promise.all(
+      files.file.map(async (file) => {
+        // 拼接视频 URL videos 对应路由
+        const fileUrl = baseUrl + '/videos/' + file.newFilename
 
-      console.log('文件名', file.newFilename)
-      console.log('视频连接', fileUrl)
-      console.log('视频元数据', {
-        format: file.mimetype.split('/')[1], // 视频格式
-        size: file.size, // 字节
+        const result = await createVideo({
+          filename: file.newFilename,
+          url: fileUrl,
+          metadata: {
+            format: file.mimetype.split('/')[1], // 图片格式
+            size: file.size, // 字节
+          },
+        })
+
+        return {
+          filename: file.newFilename,
+          id: result.id,
+          url: fileUrl,
+        }
       })
+    )
 
-      return {
-        filename: file.newFilename,
-        url: fileUrl,
-      }
-    })
-    return res.status(200).json(formatResponse(1, '上传成功', { url }))
+    return res.status(200).json(formatResponse(1, '上传成功', { videos: urls }))
   })
 })
 

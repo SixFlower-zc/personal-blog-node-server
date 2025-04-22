@@ -1,5 +1,5 @@
 const express = require('express')
-const { formatResponse, validateCaptcha, encryption, verification } = require('../../utils')
+const { formatResponse, validateCaptcha, encryption } = require('../../utils')
 const { jsonParser } = require('../../middlewares')
 const {
   validateLogin,
@@ -18,8 +18,10 @@ const {
   loginUser,
   getUserById,
   resetPassword,
-  deleteUser,
   updateUser,
+  softDeleteUser,
+  addUserVisitor,
+  incrementUserViews,
 } = require('../../api')
 const crypto = require('crypto')
 
@@ -88,7 +90,7 @@ router.post('/login', [jsonParser, validateLogin], async (req, res) => {
     `refreshToken:${refreshToken}`,
     7 * 24 * 3600,
     JSON.stringify({
-      userId: result.id,
+      id: result.id,
       uid: result.uid,
       valid: true,
       deviceInfo: req.headers['user-agent'], // 记录设备信息用于安全验证,用于防止token被盗用
@@ -122,7 +124,7 @@ router.post('/token/refresh', async (req, res) => {
   }
 
   // 解析存储的 Token 数据（包含设备信息）
-  const { valid, deviceInfo, userId, uid } = JSON.parse(storedTokenData)
+  const { valid, deviceInfo, id, uid } = JSON.parse(storedTokenData)
   if (!valid || deviceInfo !== req.headers['user-agent']) {
     // 设备信息不匹配可能为 Token 盗用
     await client.del(`refreshToken:${refreshToken}`) // 立即失效旧 Token
@@ -131,7 +133,7 @@ router.post('/token/refresh', async (req, res) => {
 
   // 生成新的 Access Token（JWT）
   const token = await encryption({
-    id: userId,
+    id: id,
     uid: uid,
     iat: Date.now(),
     exp: Date.now() + 3600 * 1000,
@@ -148,7 +150,7 @@ router.post('/token/refresh', async (req, res) => {
     `refreshToken:${newRefreshToken}`,
     7 * 24 * 3600,
     JSON.stringify({
-      id: userId,
+      id: id,
       uid: uid,
       valid: true,
       deviceInfo: req.headers['user-agent'], // 记录设备信息用于安全验证,用于防止token被盗用
@@ -167,16 +169,34 @@ router.post('/token/refresh', async (req, res) => {
 })
 
 // !: 用户信息获取
-router.get('/info', [jsonParser, validateGetInfo], async (req, res) => {
-  const { id } = req.user
+router.get('/info/:id', [jsonParser, validateGetInfo], async (req, res) => {
+  const { id: infoId } = req.params
 
   // ?: 获取用户信息
-  const result = await getUserById(id)
-  if (!result) {
-    return res.status(404).json(formatResponse(0, '用户不存在', {}))
+
+  const result = await getUserById(infoId)
+
+  // 如果携带token
+  if (req.user) {
+    const { id: userId } = req.user
+
+    // 如果发起请求者是本人，则返回完整信息
+    if (userId === infoId) {
+      res.status(200).json(formatResponse(1, '获取用户信息成功', result))
+      return
+    }
+    addUserVisitor(infoId, userId) // 增加用户访问列表
   }
 
-  res.status(200).json(formatResponse(1, '获取用户信息成功', result))
+  // 否则只返回部分信息
+  incrementUserViews(infoId) // 增加用户浏览量
+  const { id, uid, avatar, nickname, gender, birthday, bio } = result
+
+  res
+    .status(200)
+    .json(
+      formatResponse(1, '获取用户信息成功', { id, uid, avatar, nickname, gender, birthday, bio })
+    )
 })
 
 // !: 用户信息更改
@@ -261,7 +281,7 @@ router.delete('/delete', [validateDelete], async (req, res) => {
   const { id } = req.user
 
   // ?: 删除逻辑
-  await deleteUser(id)
+  await softDeleteUser(id)
 
   res.status(200).json(formatResponse(1, '用户删除成功', {}))
 })

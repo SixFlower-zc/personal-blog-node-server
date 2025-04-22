@@ -46,7 +46,7 @@ const docSchema = new Schema(
     /** 公开状态 */
     isPublic: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     /** 删除状态 */
@@ -72,16 +72,45 @@ const docSchema = new Schema(
         if (ret.isDeleted) {
           return null
         }
-        ret.id = ret._id.toString()
-        delete ret._id
-        return ret
+
+        const {
+          _id,
+          creator,
+          title,
+          content,
+          category,
+          tags,
+          editTimes,
+          relatedProject,
+          isPublic,
+          create_time,
+          update_time,
+        } = ret
+
+        return {
+          id: _id.toString(),
+          creator: creator.toString(),
+          title,
+          content,
+          category,
+          tags,
+          editTimes,
+          relatedProject: relatedProject ? relatedProject.toString() : null,
+          isPublic,
+          create_time,
+          update_time,
+        }
       },
     },
   }
 )
 
 // 建立组合搜索索引，加速查询
-docSchema.index({ creator: 1, category: 1, create_time: -1 }, { unique: true })
+docSchema.index({ creator: 1 })
+docSchema.index({ creator: 1, category: 1 })
+docSchema.index({ creator: 1, create_time: 1 })
+docSchema.index({ creator: 1, category: 1, relatedProject: 1 })
+docSchema.index({ creator: 1, category: 1, isPublic: 1 })
 
 const DocModule = model('docs', docSchema)
 

@@ -1,58 +1,71 @@
-const { Schema, model } = require('mongoose')
+const mongoose = require('mongoose')
 
-// 日志模型的schema
-const adminLogSchema = new Schema(
+const adminLogSchema = new mongoose.Schema(
   {
-    /** 管理员ID */
+    // 操作管理员ID
     adminId: {
-      type: Schema.Types.ObjectId,
-      ref: 'admins',
-      required: [true, '管理员ID不能为空'],
-      index: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Admin',
+      required: true,
     },
-
-    /** 操作类型 */
+    // 操作类型
     type: {
       type: String,
-      enum: ['create', 'read', 'update', 'delete'],
-      required: [true, '操作类型不能为空'],
+      enum: [
+        'LOGIN', // 登录
+        'LOGOUT', // 登出
+        'CREATE_ADMIN', // 创建管理员
+        'UPDATE_ADMIN', // 更新管理员
+        'DELETE_ADMIN', // 删除管理员
+        'UPDATE_PROFILE', // 更新个人信息
+        'CHANGE_PASSWORD', // 修改密码
+        'OPERATE_NORMAL_USER', // 操作普通用户
+        'OTHER', // 其他操作
+      ],
+      required: true,
     },
-
-    /** 操作内容 */
-    content: {
+    // 操作详情
+    detail: {
+      type: Object,
+      default: {},
+    },
+    // 操作IP
+    ip: {
       type: String,
-      trim: true,
-      maxlength: 500,
-      required: [true, '操作内容不能为空'],
+      required: true,
     },
-
-    /** 操作时间 */
-    time: {
+    // 操作时间
+    create_time: {
       type: Date,
       default: Date.now,
-      index: true,
-    },
-
-    /** 操作IP地址 */
-    IP: {
-      type: String,
-      trim: true,
-      maxlength: 50,
-      required: [true, '操作IP地址不能为空'],
     },
   },
   {
+    timestamps: { createdAt: 'create_time', updatedAt: 'update_time' },
     // 禁用 __v 版本字段
     versionKey: false,
     // 文档在查询JSON对象时，将返回的字段中包含虚拟字段
     toJSON: {
       virtuals: true,
+      transform: (doc, ret) => {
+        const { _id, type, detail, create_time } = ret
+
+        return {
+          id: _id.toString(),
+          type,
+          detail,
+          create_time,
+        }
+      },
     },
   }
 )
 
-adminLogSchema.index({ adminId: 1, Time: -1 }, { unique: true })
+// 建立组合搜索索引，加速查询
+adminLogSchema.index({ adminId: 1 })
+adminLogSchema.index({ adminId: 1, create_time: -1 })
+adminLogSchema.index({ adminId: 1, create_time: -1, type: 1 })
 
-const AdminLogModule = model('adminlogs', adminLogSchema)
+const AdminLogModule = mongoose.model('AdminLog', adminLogSchema)
 
 module.exports = AdminLogModule

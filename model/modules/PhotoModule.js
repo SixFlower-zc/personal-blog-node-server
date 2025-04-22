@@ -7,7 +7,6 @@ const photoSchema = new Schema(
     creator: {
       type: Schema.Types.ObjectId,
       ref: 'users',
-      required: [true, '图片上传者不能为空'],
     },
 
     /** 文件名 */
@@ -48,7 +47,7 @@ const photoSchema = new Schema(
     /** 公开状态 */
     isPublic: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     /** 删除状态 */
@@ -74,19 +73,28 @@ const photoSchema = new Schema(
         if (ret.isDeleted) {
           return null
         }
-        ret.id = ret._id.toString()
-        delete ret._id
-        delete ret.isDeleted
-        delete ret.create_time
-        delete ret.update_time
-        delete ret.isPublic
-        return ret
+        const { _id, creator = '', filename, url, metadata, album = '', isPublic } = ret
+
+        return {
+          id: _id.toString(),
+          creator: creator.toString(),
+          filename,
+          url,
+          album: album.toString(),
+          metadata,
+          isPublic,
+        }
       },
     },
   }
 )
 
-photoSchema.index({ creator: 1, filename: 1, create_time: 1 }, { unique: true }) // 建立索引
+// 建立组合搜索索引，加速查询
+photoSchema.index({ album: 1 })
+photoSchema.index({ creator: 1 })
+photoSchema.index({ creator: 1, isPublic: 1 })
+photoSchema.index({ creator: 1, create_time: -1 })
+photoSchema.index({ creator: 1, create_time: -1, isPublic: 1 })
 
 const PhotoModule = model('photos', photoSchema)
 

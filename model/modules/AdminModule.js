@@ -112,10 +112,19 @@ const adminSchema = new Schema(
         if (ret.isDeleted) {
           return null
         }
-        ret.id = ret._id.toString()
-        delete ret._id
-        delete ret.password
-        return ret
+
+        const { _id, aid, avatar, nickname, email, role, routes, logs } = ret
+
+        return {
+          id: _id.toString(),
+          aid,
+          avatar,
+          nickname,
+          email,
+          role,
+          routes,
+          logs,
+        }
       },
     },
   }
@@ -144,6 +153,9 @@ adminSchema.pre('save', async function (next) {
   this.routes = role.find((item) => item.value === this.role).routes
   next()
 })
+
+// 建立组合搜索索引，加速查询
+adminSchema.index({ role: 1 })
 
 const AdminModule = model('admins', adminSchema)
 

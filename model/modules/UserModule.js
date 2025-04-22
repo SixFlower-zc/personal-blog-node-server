@@ -87,6 +87,20 @@ const userSchema = new Schema(
       ],
     },
 
+    /** 访问量 */
+    views: {
+      type: Number,
+      default: 0,
+    },
+
+    /** 访问者列表 */
+    visitors: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'users',
+      },
+    ],
+
     /** 登录失败计数 */
     failedAttempts: {
       type: Number,
@@ -160,21 +174,35 @@ const userSchema = new Schema(
         if (ret.isDeleted) {
           return null
         }
-        ret.id = ret._id.toString()
-        delete ret._id
-        // 删除敏感字段
-        delete ret.password
-        delete ret.isDeleted
-        delete ret.failedAttempts
-        delete ret.lockUntil
-        delete ret.status
-        delete ret.registerIP
-        delete ret.lastLoginIP
-        delete ret.lastLoginTime
-        delete ret.update_time
-        delete ret.create_time
-        delete ret.riskLevel
-        return ret
+
+        // 返回字段
+        const {
+          _id,
+          uid,
+          nickname,
+          avatar,
+          gender,
+          birthday,
+          bio,
+          phone,
+          email,
+          views,
+          visitors = [],
+        } = ret
+
+        return {
+          id: _id.toString(),
+          uid,
+          nickname,
+          avatar,
+          gender,
+          birthday,
+          bio,
+          phone,
+          email,
+          views,
+          visitors: visitors.map((visitor) => visitor.toString()),
+        }
       },
     },
   }

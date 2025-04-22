@@ -1,7 +1,3 @@
-const dayjs = require('dayjs')
-const { UserModule } = require('../../model')
-const { hashPassword, verifyPassword } = require('../../utils')
-
 /**
  * 用户信息类型
  * @typedef {Object} UserInfo
@@ -15,6 +11,10 @@ const { hashPassword, verifyPassword } = require('../../utils')
  * @property {string} [phone] - 用户电话
  * @property {string} email - 用户邮箱
  */
+
+const dayjs = require('dayjs')
+const { UserModule } = require('../../model')
+const { hashPassword, verifyPassword } = require('../../utils')
 
 /**
  * 用户注册
@@ -60,17 +60,10 @@ const loginUser = async (options) => {
 
   try {
     let user = await UserModule.findOne({ uid })
-    console.log('uid', user)
     if (email) {
       user = await UserModule.findOne({ email })
-      console.log('email')
     } else if (phone) {
       user = await UserModule.findOne({ phone })
-      console.log('phone', user)
-    }
-
-    if (!user) {
-      throw new Error('用户不存在')
     }
 
     // 检查账户状态
@@ -141,10 +134,6 @@ const updateUser = async (userId, updateData) => {
       { new: true }
     )
 
-    if (!updatedUser) {
-      throw new Error('用户不存在')
-    }
-
     return updatedUser
   } catch (error) {
     throw error
@@ -159,9 +148,7 @@ const updateUser = async (userId, updateData) => {
 const getUserById = async (userId) => {
   try {
     const user = await UserModule.findById(userId)
-    if (!user) {
-      throw new Error('用户不存在')
-    }
+
     return user.toJSON()
   } catch (error) {
     throw error
@@ -171,18 +158,13 @@ const getUserById = async (userId) => {
 /**
  * 删除用户（软删除）
  * @param {string} userId - 用户ID
+ * @param {boolean} [isDeleted=true] - 是否删除
  * @returns {Promise<User>} 删除后的用户对象
  */
-const deleteUser = async (userId) => {
+const softDeleteUser = async (userId, isDeleted = true) => {
   try {
-    const user = await UserModule.findByIdAndUpdate(
-      userId,
-      { $set: { isDeleted: true } },
-      { new: true }
-    )
-    if (!user) {
-      throw new Error('用户不存在')
-    }
+    const user = await UserModule.findByIdAndUpdate(userId, { $set: { isDeleted } }, { new: true })
+
     return user
   } catch (error) {
     throw error
@@ -205,13 +187,56 @@ const resetPassword = async (email, newPassword) => {
       { new: true }
     )
 
-    if (!user) {
-      throw new Error('用户不存在')
-    }
-
     return user.toJSON()
   } catch (error) {
     throw error
+  }
+}
+
+/**
+ * 增加用户访问量
+ * @param {string} userId - 用户ID
+ * @returns {Promise<User>} 更新后的用户
+ */
+const incrementUserViews = async (userId) => {
+  try {
+    const user = await UserModule.findByIdAndUpdate(
+      userId,
+      { $inc: { views: 1 } }, // 增加访问量
+      { new: true } // 返回更新后的文档
+    )
+
+    if (!user || user.isDeleted) {
+      throw new Error('用户不存在')
+    }
+
+    return user
+  } catch (error) {
+    throw new Error(`增加用户访问量失败: ${error.message}`)
+  }
+}
+
+/**
+ * 增加用户访问者
+ * @param {string} userId - 用户ID
+ * @param {string} visitorId - 访问者的用户ID
+ * @returns {Promise<User>} 更新后的用户
+ */
+const addUserVisitor = async (userId, visitorId) => {
+  try {
+    const user = await UserModule.findByIdAndUpdate(
+      userId,
+      { $addToSet: { visitors: visitorId } }, // 将访问者的ID添加到访问者数组中
+      { new: true } // 返回更新后的文档
+    )
+
+    if (!user || user.isDeleted) {
+      throw new Error('用户不存在')
+    }
+
+    return user
+  } catch (error) {
+    throw new Error(`增加用户访问者失败: ${error.message}`)
   }
 }
 
@@ -220,6 +245,8 @@ module.exports = {
   loginUser,
   updateUser,
   getUserById,
-  deleteUser,
+  softDeleteUser,
   resetPassword,
+  incrementUserViews,
+  addUserVisitor,
 }
