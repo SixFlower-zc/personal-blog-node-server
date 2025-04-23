@@ -73,16 +73,16 @@ const verification = async (token) => {
   } catch (error) {
     // 分类处理已知错误类型
     if (error instanceof jose.errors.JWTExpired) {
-      throw new Error('JWT 已过期')
+      throw new Error('登录已过期，请重新登录')
     }
     if (error instanceof jose.errors.JWSInvalid) {
-      throw new Error('JWT 签名无效')
+      throw new Error('Token 无效')
     }
     if (error instanceof jose.errors.JWTInvalid) {
-      throw new Error('JWT 格式无效')
+      throw new Error('Token 格式错误')
     }
     // 未知错误统一处理
-    throw new Error(`JWT 验证失败: ${error.message}`)
+    throw new Error(`Token 验证失败: ${error.message}`)
   }
 }
 

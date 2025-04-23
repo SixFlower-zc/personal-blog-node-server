@@ -72,9 +72,9 @@ const loginUser = async (options) => {
     }
 
     // 检查账户是否被锁定
-    if (user.lockUntil && user.lockUntil > Date.now()) {
+    if (user.lockUntil > Date.now()) {
       throw new Error(
-        `账户已被锁定，请在${dayjs(user.lockUntil).format('YYYY-MM-DD HH:mm:ss')}后重试`
+        `账户已被锁定，请联系管理员或在${dayjs(user.lockUntil).format('YYYY-MM-DD HH:mm:ss')}后重试`
       )
     }
 
@@ -87,7 +87,7 @@ const loginUser = async (options) => {
       if (user.failedAttempts >= 5) {
         user.lockUntil = new Date(Date.now() + Math.pow(2, user.riskLevel) * 30 * 60 * 1000) // 锁定30分钟
         // 账号风险等级 + 1
-        user.riskLevel = user.riskLevel + 1
+        user.riskLevel += 1
       }
       await user.save()
       throw new Error(
@@ -124,17 +124,13 @@ const loginUser = async (options) => {
  * @param {string} [updateData.gender] - 用户性别
  * @param {Date} [updateData.birthday] - 用户生日
  * @param {string} [updateData.bio] - 用户简介
- * @returns {Promise<User>} 更新后的用户对象
+ * @returns {Promise<UserInfo>} 更新后的用户对象
  */
 const updateUser = async (userId, updateData) => {
   try {
-    const updatedUser = await UserModule.findByIdAndUpdate(
-      userId,
-      { $set: updateData },
-      { new: true }
-    )
+    const user = await UserModule.findByIdAndUpdate(userId, { $set: updateData }, { new: true })
 
-    return updatedUser
+    return user.toJSON()
   } catch (error) {
     throw error
   }
@@ -149,6 +145,10 @@ const getUserById = async (userId) => {
   try {
     const user = await UserModule.findById(userId)
 
+    if (!user || user.isDeleted) {
+      throw new Error('用户不存在')
+    }
+
     return user.toJSON()
   } catch (error) {
     throw error
@@ -159,13 +159,17 @@ const getUserById = async (userId) => {
  * 删除用户（软删除）
  * @param {string} userId - 用户ID
  * @param {boolean} [isDeleted=true] - 是否删除
- * @returns {Promise<User>} 删除后的用户对象
+ * @returns {Promise<UserInfo>} 删除后的用户对象
  */
 const softDeleteUser = async (userId, isDeleted = true) => {
   try {
     const user = await UserModule.findByIdAndUpdate(userId, { $set: { isDeleted } }, { new: true })
 
-    return user
+    if (!user || user.isDeleted) {
+      throw new Error('用户不存在')
+    }
+
+    return user.toJSON()
   } catch (error) {
     throw error
   }
@@ -196,7 +200,7 @@ const resetPassword = async (email, newPassword) => {
 /**
  * 增加用户访问量
  * @param {string} userId - 用户ID
- * @returns {Promise<User>} 更新后的用户
+ * @returns {Promise<UserInfo>} 更新后的用户
  */
 const incrementUserViews = async (userId) => {
   try {
@@ -210,7 +214,7 @@ const incrementUserViews = async (userId) => {
       throw new Error('用户不存在')
     }
 
-    return user
+    return user.toJSON()
   } catch (error) {
     throw new Error(`增加用户访问量失败: ${error.message}`)
   }
@@ -220,7 +224,7 @@ const incrementUserViews = async (userId) => {
  * 增加用户访问者
  * @param {string} userId - 用户ID
  * @param {string} visitorId - 访问者的用户ID
- * @returns {Promise<User>} 更新后的用户
+ * @returns {Promise<UserInfo>} 更新后的用户
  */
 const addUserVisitor = async (userId, visitorId) => {
   try {
@@ -234,7 +238,7 @@ const addUserVisitor = async (userId, visitorId) => {
       throw new Error('用户不存在')
     }
 
-    return user
+    return user.toJSON()
   } catch (error) {
     throw new Error(`增加用户访问者失败: ${error.message}`)
   }

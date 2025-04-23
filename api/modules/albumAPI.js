@@ -10,6 +10,7 @@
  * @property {number} views - 访问量
  * @property {string[]} [visitors] - 访问者ID列表
  * @property {string[]} [tags] - 标签列表
+ * @property {boolean} isPublic - 是否公开
  * @property {Date} create_time - 创建时间
  * @property {Date} update_time - 更新时间
  */
@@ -83,7 +84,7 @@ const updateAlbum = async (albumId, params) => {
     if (!album) {
       throw new Error('图集不存在')
     }
-    return album
+    return album.toJSON()
   } catch (error) {
     throw new Error(`更新图集失败: ${error.message}`)
   }
@@ -105,7 +106,7 @@ const deleteAlbum = async (albumId, isDeleted = true) => {
     if (!album) {
       throw new Error('图集不存在')
     }
-    return album
+    return album.toJSON()
   } catch (error) {
     throw new Error(`删除图集失败: ${error.message}`)
   }
@@ -155,28 +156,38 @@ const getAlbumById = async (albumId) => {
  */
 const getAlbumList = async (params) => {
   try {
-    const { page = 1, pageSize = 10, sortField = 'create_time', sortOrder = -1, ...query } = params
+    const {
+      page = 1,
+      pageSize = 10,
+      sortField = 'create_time',
+      sortOrder = -1,
+      creator,
+      title,
+      tags,
+      isPublic = true,
+    } = params
     const skip = (page - 1) * pageSize
 
     // 基础查询条件：只查找未删除的文档
-    const conditions = { isDeleted: false }
-    // 动态添加查询条件 如果存在 creator 字段，添加精确匹配条件
-    if (query.creator) conditions.creator = query.creator
+    const conditions = { isDeleted: false, isPublic }
+    // 如果存在 creator 字段，添加精确匹配条件
+    if (creator) conditions.creator = creator
     // 如果存在 title 字段，添加模糊匹配条件（不区分大小写）
-    if (query.title) conditions.title = { $regex: query.title, $options: 'i' }
+    if (title) conditions.title = { $regex: title, $options: 'i' }
     // 如果存在 tags 字段，添加数组匹配条件（`tags` 必须包含所有查询值）
-    if (query.tags) conditions.tags = { $all: query.tags }
-    // 如果存在 isPublic 字段，添加精确匹配条件
-    if (query.isPublic !== undefined) conditions.isPublic = query.isPublic
+    if (tags) conditions.tags = { $all: tags }
+
+    // 构建排序条件
+    const sort = {}
+    sort[sortField] = Number(sortOrder)
 
     const [total, list] = await Promise.all([
       AlbumModule.countDocuments(conditions),
-      AlbumModule.find(conditions)
-        .sort({ [sortField]: Number(sortOrder) })
-        .skip(skip)
-        .limit(pageSize),
+      AlbumModule.find(conditions).sort(sort).skip(skip).limit(pageSize),
     ])
-
+    if (page > 1 && page > Math.ceil(total / pageSize)) {
+      throw new Error('页码超出范围')
+    }
     return {
       page,
       pageSize,
@@ -206,7 +217,7 @@ const incrementAlbumViews = async (albumId) => {
     if (!album || album.isDeleted) {
       throw new Error('图集不存在')
     }
-    return album
+    return album.toJSON()
   } catch (error) {
     throw new Error(`增加图集访问量失败: ${error.message}`)
   }
@@ -228,7 +239,7 @@ const addAlbumVisitor = async (albumId, userId) => {
     if (!album || album.isDeleted) {
       throw new Error('图集不存在')
     }
-    return album
+    return album.toJSON()
   } catch (error) {
     throw new Error(`增加图集访问者失败: ${error.message}`)
   }

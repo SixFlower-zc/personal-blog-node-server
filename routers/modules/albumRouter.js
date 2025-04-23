@@ -110,7 +110,12 @@ router.get('/:id', [validateGetAlbumDetail], async (req, res) => {
   const { id } = req.params
 
   const result = await getAlbumById(id)
-  const { creator, title, description, photos, videos, tags, create_time } = result
+  const { creator, title, description, photos, videos, tags, create_time, isPublic } = result
+
+  // 如果是非公开项目
+  if ((!req.user && !isPublic) || (req.user && req.user.id !== creator && !isPublic)) {
+    return res.status(403).json(formatResponse(0, '无权访问'))
+  }
 
   // 请求者携带token
   if (req.user) {
@@ -123,7 +128,7 @@ router.get('/:id', [validateGetAlbumDetail], async (req, res) => {
     addAlbumVisitor(id, req.user.id)
   }
 
-  // 请求者不携带token
+  // 增加访问量
   incrementAlbumViews(id)
 
   res.status(200).json(

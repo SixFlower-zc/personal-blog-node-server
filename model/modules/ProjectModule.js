@@ -39,6 +39,20 @@ const projectSchema = new Schema(
     /** 项目权重（数字越大排序越靠前） */
     weight: { type: Number, default: 0 },
 
+    /** 访问量 */
+    views: {
+      type: Number,
+      default: 0,
+    },
+
+    /** 访问者列表 */
+    visitors: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'users',
+      },
+    ],
+
     /** 公开状态 */
     isPublic: {
       type: Boolean,
@@ -81,6 +95,8 @@ const projectSchema = new Schema(
           isFeatured,
           weight,
           isPublic,
+          views,
+          visitors,
         } = ret
         return {
           id: _id.toString(),
@@ -95,6 +111,8 @@ const projectSchema = new Schema(
           isFeatured,
           weight,
           isPublic,
+          views,
+          visitors,
         }
       },
     },

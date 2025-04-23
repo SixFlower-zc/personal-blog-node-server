@@ -82,7 +82,10 @@ const videoSchema = new Schema(
           filename,
           url,
           album: album.toString(),
-          metadata,
+          metadata: {
+            format: metadata.format,
+            size: metadata.size,
+          },
           isPublic,
         }
       },

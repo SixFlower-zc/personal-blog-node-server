@@ -46,7 +46,7 @@ router.get('/:filename', async (req, res) => {
 
   // 文件名验证
   if (filename.includes('..') || !/^original-/.test(filename)) {
-    return res.status(403).json(forematResponse(0, '非法文件名', {}))
+    return res.status(403).json(forematResponse(0, '非法文件名'))
   }
 
   // 文件名解析
@@ -57,7 +57,7 @@ router.get('/:filename', async (req, res) => {
   try {
     // 检查原始文件
     if (!fs.existsSync(originalPath)) {
-      return res.status(404).json(formatResponse(0, '文件不存在', {}))
+      return res.status(404).json(formatResponse(0, '文件不存在'))
     }
 
     // 如果缓存存在直接返回

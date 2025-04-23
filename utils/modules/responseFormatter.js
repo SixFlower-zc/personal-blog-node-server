@@ -5,7 +5,7 @@
  * @param {object} data - 数据
  * @returns {object} 返回数据对象
  */
-const formatResponse = (code = 200, message = 'success', data) => {
+const formatResponse = (code = 200, message = 'success', data = {}) => {
   return {
     code,
     message,

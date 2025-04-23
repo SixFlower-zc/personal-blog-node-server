@@ -72,7 +72,7 @@ router.post('/login', [jsonParser, validateLogin], async (req, res) => {
   })
 
   if (!result) {
-    return res.status(401).json(formatResponse(0, '用户名或密码错误', {}))
+    return res.status(401).json(formatResponse(0, '用户名或密码错误'))
   }
 
   // 生成 Access Token（JWT）
@@ -114,7 +114,7 @@ router.post('/token/refresh', async (req, res) => {
 
   // ?: 刷新 token 逻辑
   if (!refreshToken) {
-    return res.status(401).json(formatResponse(0, '请先登录', {}))
+    return res.status(401).json(formatResponse(0, '请先登录'))
   }
 
   // 从 Redis 中验证 Refresh Token 有效性
@@ -261,7 +261,7 @@ router.post('/password-reset', [jsonParser, validatePasswordReset], async (req, 
 
   resetPassword(email, newPassword)
 
-  res.status(200).json(formatResponse(1, '密码重置成功', {}))
+  res.status(200).json(formatResponse(1, '密码重置成功'))
 })
 
 // !: 用户退出登录
@@ -273,7 +273,7 @@ router.post('/logout', [validateLogout], async (req, res) => {
     path: '/user/token/refresh', // 限制 Cookie 仅对刷新接口有效
   })
 
-  res.status(200).json(formatResponse(1, '退出登陆成功', {}))
+  res.status(200).json(formatResponse(1, '退出登陆成功'))
 })
 
 // !: 用户删除(软删除)
@@ -283,7 +283,7 @@ router.delete('/delete', [validateDelete], async (req, res) => {
   // ?: 删除逻辑
   await softDeleteUser(id)
 
-  res.status(200).json(formatResponse(1, '用户删除成功', {}))
+  res.status(200).json(formatResponse(1, '用户删除成功'))
 })
 
 module.exports = router
