@@ -12,9 +12,9 @@ const { db, formatResponse } = require('./utils')
 const {
   corsMiddleware,
   helmetMiddlewares,
-  requestLoggerMiddleware,
   apiKeyAuth,
   uploadlimiter,
+  logger,
 } = require('./middlewares')
 
 // 引入配置文件
@@ -28,6 +28,7 @@ const {
   captchaRouter,
   albumRouter,
   projectRouter,
+  docRouter,
 } = require('./routers')
 
 const app = express()
@@ -44,7 +45,14 @@ db(
     app.use(helmetMiddlewares)
 
     // 请求日志中间件
-    app.use(requestLoggerMiddleware)
+    app.use(
+      logger({
+        rotation: {
+          size: 500 * 1024 * 1024, // 500MB
+          keepDays: 30,
+        },
+      })
+    )
 
     // cooke-parser中间件
     app.use(cookieParser())
@@ -56,6 +64,7 @@ db(
     app.use('/captcha', captchaRouter)
     app.use('/album', albumRouter)
     app.use('/project', projectRouter)
+    app.use('/doc', docRouter)
 
     // 404处理
     app.use((req, res, next) => {

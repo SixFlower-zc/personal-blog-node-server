@@ -35,7 +35,7 @@ const projectSchema = new Schema(
       ref: 'photos',
     },
     /** 是否置顶展示（手动控制） */
-    isFeatured: { type: Boolean, default: false },
+    isTop: { type: Boolean, default: false },
     /** 项目权重（数字越大排序越靠前） */
     weight: { type: Number, default: 0 },
 
@@ -92,11 +92,12 @@ const projectSchema = new Schema(
           demoUrl,
           githubUrl,
           giteeUrl,
-          isFeatured,
+          isTop,
           weight,
           isPublic,
           views,
           visitors,
+          create_time,
         } = ret
         return {
           id: _id.toString(),
@@ -108,11 +109,12 @@ const projectSchema = new Schema(
           demoUrl,
           githubUrl,
           giteeUrl,
-          isFeatured,
+          isTop,
           weight,
           isPublic,
           views,
           visitors,
+          create_time,
         }
       },
     },

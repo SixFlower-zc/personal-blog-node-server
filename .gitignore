@@ -1,5 +1,5 @@
 # Logs
-logs
+logs/*
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -30,7 +30,6 @@ coverage
 *.tsbuildinfo
 
 # 自定义规则
-*/logs/*
 */originals/*
 */*/cache/*
 */*/videos/*

@@ -36,8 +36,8 @@ const createPhoto = async (photoData) => {
     const photo = new PhotoModule(photoData)
     await photo.save()
     return photo.toJSON()
-  } catch (error) {
-    throw new Error(`创建照片记录失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`创建照片记录失败: ${err.message}`)
   }
 }
 
@@ -54,8 +54,8 @@ const createVideo = async (videoData) => {
     const video = new VideoModule(videoData)
     await video.save()
     return video.toJSON()
-  } catch (error) {
-    throw new Error(`创建视频记录失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`创建视频记录失败: ${err.message}`)
   }
 }
 
@@ -69,8 +69,8 @@ const updatePhoto = async (photoId, photoData) => {
   try {
     const photo = await PhotoModule.findByIdAndUpdate(photoId, { $set: photoData }, { new: true })
     return photo.toJSON()
-  } catch (error) {
-    throw new Error(`更新照片记录失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`更新照片记录失败: ${err.message}`)
   }
 }
 
@@ -84,8 +84,8 @@ const updateVideo = async (videoId, videoData) => {
   try {
     const video = await VideoModule.findByIdAndUpdate(videoId, { $set: videoData }, { new: true })
     return video.toJSON()
-  } catch (error) {
-    throw new Error(`更新视频记录失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`更新视频记录失败: ${err.message}`)
   }
 }
 
@@ -98,8 +98,8 @@ const getUserPhotos = async (creatorId) => {
   try {
     const photos = await PhotoModule.find({ creator: creatorId }).sort({ create_time: -1 })
     return photos.map((photo) => photo.toJSON())
-  } catch (error) {
-    throw new Error(`获取用户照片失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`获取用户照片失败: ${err.message}`)
   }
 }
 
@@ -112,8 +112,8 @@ const getUserVideos = async (creatorId) => {
   try {
     const videos = await VideoModule.find({ creator: creatorId }).sort({ create_time: -1 })
     return videos.map((video) => video.toJSON())
-  } catch (error) {
-    throw new Error(`获取用户视频失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`获取用户视频失败: ${err.message}`)
   }
 }
 
@@ -131,8 +131,8 @@ const softDeletePhoto = async (photoId, isDeleted = true) => {
       { new: true }
     )
     return photo.toJSON()
-  } catch (error) {
-    throw new Error(`删除照片失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`删除照片失败: ${err.message}`)
   }
 }
 
@@ -150,8 +150,8 @@ const softDeleteVideo = async (videoId, isDeleted = true) => {
       { new: true }
     )
     return video.toJSON()
-  } catch (error) {
-    throw new Error(`删除视频失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`删除视频失败: ${err.message}`)
   }
 }
 

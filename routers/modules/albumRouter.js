@@ -110,7 +110,7 @@ router.get('/:id', [validateGetAlbumDetail], async (req, res) => {
   const { id } = req.params
 
   const result = await getAlbumById(id)
-  const { creator, title, description, photos, videos, tags, create_time, isPublic } = result
+  const { creator, title, description, photos, videos, tags, create_time, views, isPublic } = result
 
   // 如果是非公开项目
   if ((!req.user && !isPublic) || (req.user && req.user.id !== creator && !isPublic)) {
@@ -140,6 +140,7 @@ router.get('/:id', [validateGetAlbumDetail], async (req, res) => {
       photos,
       videos,
       tags,
+      views,
       create_time,
     })
   )

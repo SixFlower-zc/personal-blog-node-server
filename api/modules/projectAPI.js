@@ -9,8 +9,10 @@
  * @property {string} [githubUrl] - GitHub地址
  * @property {string} [giteeUrl] - Gitee地址
  * @property {string} [cover] - 封面图ID
- * @property {boolean} isFeatured - 是否置顶
+ * @property {boolean} isTop - 是否置顶
  * @property {number} weight - 权重
+ * @property {number} [views] - 浏览量
+ * @property {string[]} [visitors] - 浏览者ID数组
  * @property {boolean} isPublic - 是否公开
  * @property {boolean} isDeleted - 是否删除
  * @property {Date} create_time - 创建时间
@@ -33,20 +35,18 @@ const { getPhotoUrl } = require('./uploadAPI')
 
 /**
  * 创建项目
- * @param {Project} projectData - 项目数据
- * @param {string} creatorId - 创建者ID
+ * @param {Project} params - 项目数据
  * @returns {Promise<Project>} 创建的项目
  */
-const createProject = async (projectData, creatorId) => {
+const createProject = async (params) => {
   try {
     const project = new ProjectModule({
-      ...projectData,
-      creator: creatorId,
+      ...params,
     })
     await project.save()
     return project.toJSON()
-  } catch (error) {
-    throw new Error(`创建项目失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`创建项目失败: ${err.message}`)
   }
 }
 
@@ -64,8 +64,8 @@ const updateProject = async (projectId, updateData) => {
       { new: true }
     )
     return project.toJSON()
-  } catch (error) {
-    throw new Error(`更新项目失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`更新项目失败: ${err.message}`)
   }
 }
 
@@ -87,8 +87,8 @@ const deleteProject = async (projectId, isDeleted = true) => {
       throw new Error('项目不存在')
     }
     return project.toJSON()
-  } catch (error) {
-    throw new Error(`删除项目失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`删除项目失败: ${err.message}`)
   }
 }
 
@@ -106,8 +106,8 @@ const getProjectDetail = async (projectId) => {
     const cover = await getPhotoUrl(project.cover)
 
     return { ...project.toJSON(), cover }
-  } catch (error) {
-    throw new Error(`获取项目详情失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`获取项目详情失败: ${err.message}`)
   }
 }
 
@@ -124,8 +124,8 @@ const increaseProjectViewCount = async (projectId) => {
       { new: true }
     )
     return project.toJSON()
-  } catch (error) {
-    throw new Error(`项目访问量增加失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`项目访问量增加失败: ${err.message}`)
   }
 }
 
@@ -143,8 +143,8 @@ const addProjectVisitor = async (projectId, visitorId) => {
       { new: true }
     )
     return project.toJSON()
-  } catch (error) {
-    throw new Error(`访问者列表增加失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`访问者列表增加失败: ${err.message}`)
   }
 }
 
@@ -159,7 +159,6 @@ const getProjectList = async (queryParams) => {
       title,
       techStack,
       isPublic = true,
-      creator,
       page = 1,
       pageSize = 10,
       sortField = 'create_time',
@@ -168,13 +167,11 @@ const getProjectList = async (queryParams) => {
     const skip = (page - 1) * pageSize
 
     // 基础查询条件：只查找未删除的文档
-    const conditions = { isDeleted: false, isPublic }
-    // 如果存在 creator 字段，添加精确匹配条件
-    if (creator) conditions.creator = creator
+    const query = { isDeleted: false, isPublic }
     // 如果存在 title 字段，添加模糊匹配条件（不区分大小写）
-    if (title) conditions.title = { $regex: title, $options: 'i' }
+    if (title) query.title = { $regex: title, $options: 'i' }
     // 如果存在 techStack 字段，添加技术栈标签匹配条件
-    if (techStack && techStack.length > 0) conditions.techStack = { $all: techStack }
+    if (techStack && techStack.length > 0) query.techStack = { $all: techStack }
 
     // 构建排序条件
     const sort = {}
@@ -182,8 +179,8 @@ const getProjectList = async (queryParams) => {
 
     // 执行查询
     const [total, list] = await Promise.all([
-      ProjectModule.countDocuments(conditions),
-      ProjectModule.find(conditions).sort(sort).skip(skip).limit(pageSize),
+      ProjectModule.countDocuments(query),
+      ProjectModule.find(query).sort(sort).skip(skip).limit(pageSize),
     ])
 
     if (page > 1 && page > Math.ceil(total / pageSize)) {
@@ -199,8 +196,8 @@ const getProjectList = async (queryParams) => {
       sortOrder,
       list: list.map((project) => project.toJSON()),
     }
-  } catch (error) {
-    throw new Error(`查询项目列表失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`查询项目列表失败: ${err.message}`)
   }
 }
 

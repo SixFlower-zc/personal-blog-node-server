@@ -4,7 +4,7 @@ const initCronJobs = require('./modules/cron')
 const rateLimiter = require('./modules/rateLimiter')
 const { jsonParser, urlencodedParser } = require('./modules/bodyParserMiddlewares')
 const helmetMiddlewares = require('./modules/helmetMiddlewares')
-const requestLoggerMiddleware = require('./modules/requestLoggerMiddleware')
+const logger = require('./modules/requestLoggerMiddleware')
 
 module.exports = {
   // 密钥验证中间件
@@ -21,5 +21,5 @@ module.exports = {
   // 安全防护中间件
   helmetMiddlewares,
   // 日志记录中间件
-  requestLoggerMiddleware,
+  logger,
 }

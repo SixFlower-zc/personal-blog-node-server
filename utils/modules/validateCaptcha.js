@@ -17,20 +17,19 @@ const validateCaptcha = async (fieldName, req, res) => {
     // 自动清理机制
     if (!storedCode) {
       await client.del(`${fieldName}:${token}`) // 防御性删除
-      return res.status(401).json(formatResponse(0, '验证码已过期', {}))
+      return res.status(401).json(formatResponse(0, '验证码已过期'))
     }
 
     // 验证逻辑（不区分大小写）
     if (code.toLowerCase() !== storedCode) {
       await client.del(`${fieldName}:${token}`) // 立即失效
-      return res.status(401).json(formatResponse(0, '验证码错误', {}))
+      return res.status(401).json(formatResponse(0, '验证码错误'))
     }
 
     // 验证通过后清理
     await client.del(`${fieldName}:${token}`)
   } catch (err) {
-    console.error(`[${fieldName}] 验证失败: ${err.message}`)
-    return res.status(500).json(formatResponse(0, '验证码验证失败', {}))
+    throw new Error(`验证码验证失败: ${err.message}`)
   }
 }
 

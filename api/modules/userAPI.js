@@ -40,8 +40,8 @@ const registerUser = async (options) => {
 
     await newUser.save()
     return newUser.toJSON()
-  } catch (error) {
-    throw error
+  } catch (err) {
+    throw new Error(`注册失败: ${err.message}`)
   }
 }
 
@@ -110,8 +110,8 @@ const loginUser = async (options) => {
     await user.save()
 
     return user.toJSON()
-  } catch (error) {
-    throw error
+  } catch (err) {
+    throw new Error(`登录失败: ${err.message}`)
   }
 }
 
@@ -131,8 +131,8 @@ const updateUser = async (userId, updateData) => {
     const user = await UserModule.findByIdAndUpdate(userId, { $set: updateData }, { new: true })
 
     return user.toJSON()
-  } catch (error) {
-    throw error
+  } catch (err) {
+    throw new Error(`更新用户信息失败: ${err.message}`)
   }
 }
 
@@ -150,8 +150,8 @@ const getUserById = async (userId) => {
     }
 
     return user.toJSON()
-  } catch (error) {
-    throw error
+  } catch (err) {
+    throw new Error(`获取用户信息失败: ${err.message}`)
   }
 }
 
@@ -170,8 +170,8 @@ const softDeleteUser = async (userId, isDeleted = true) => {
     }
 
     return user.toJSON()
-  } catch (error) {
-    throw error
+  } catch (err) {
+    throw new Error(`删除用户失败: ${err.message}`)
   }
 }
 
@@ -192,8 +192,8 @@ const resetPassword = async (email, newPassword) => {
     )
 
     return user.toJSON()
-  } catch (error) {
-    throw error
+  } catch (err) {
+    throw new Error(`重置密码失败: ${err.message}`)
   }
 }
 
@@ -215,8 +215,8 @@ const incrementUserViews = async (userId) => {
     }
 
     return user.toJSON()
-  } catch (error) {
-    throw new Error(`增加用户访问量失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`增加用户访问量失败: ${err.message}`)
   }
 }
 
@@ -239,8 +239,8 @@ const addUserVisitor = async (userId, visitorId) => {
     }
 
     return user.toJSON()
-  } catch (error) {
-    throw new Error(`增加用户访问者失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`增加用户访问者失败: ${err.message}`)
   }
 }
 

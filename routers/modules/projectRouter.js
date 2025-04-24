@@ -22,8 +22,8 @@ const router = express.Router()
 // !: 创建项目
 router.post('/create', [jsonParser, validateProjectCreate], async (req, res) => {
   // ?: 验证通过，创建项目
-  const result = await createProject(req.body, req.user.id)
-  res.status(200).json(formatResponse(200, '项目创建成功', result))
+  const result = await createProject({ ...req.body, creator: req.user.id })
+  res.status(200).json(formatResponse(1, '项目创建成功', result))
 })
 
 // !: 获取项目详情
@@ -43,6 +43,8 @@ router.get('/:id', [validateProjectDetail], async (req, res) => {
     isFeatured,
     weight,
     isPublic,
+    views,
+    create_time,
   } = result
 
   // 如果是非公开项目
@@ -54,17 +56,17 @@ router.get('/:id', [validateProjectDetail], async (req, res) => {
   if (req.user) {
     // 如果是项目创建者
     if (req.user.id === result.creator) {
-      return res.status(200).json(formatResponse(200, '获取项目详情成功', result))
+      return res.status(200).json(formatResponse(1, '获取项目详情成功', result))
     }
 
     addProjectVisitor(id, req.user.id)
   }
 
   // 增加项目访问量
-  increaseProjectViewCount(req.params.id)
+  increaseProjectViewCount(id)
 
   res.status(200).json(
-    formatResponse(200, '获取项目详情成功', {
+    formatResponse(1, '获取项目详情成功', {
       id,
       creator,
       title,
@@ -76,6 +78,8 @@ router.get('/:id', [validateProjectDetail], async (req, res) => {
       giteeUrl,
       isFeatured,
       weight,
+      views,
+      create_time,
     })
   )
 })
@@ -84,13 +88,14 @@ router.get('/:id', [validateProjectDetail], async (req, res) => {
 router.post('/update/:id', [jsonParser, validateProjectUpdate], async (req, res) => {
   // ?: 验证通过，更新项目信息
   const result = await updateProject(req.params.id, req.body)
-  res.status(200).json(formatResponse(200, '项目更新成功', result))
+  res.status(200).json(formatResponse(1, '项目更新成功', result))
 })
 
 // !: 删除项目
 router.delete('/:id', [validateProjectDelete], async (req, res) => {
+  // ?: 验证通过，删除项目
   const result = await deleteProject(req.params.id)
-  res.status(200).json(formatResponse(200, '项目删除成功', result))
+  res.status(200).json(formatResponse(1, '项目删除成功', result))
 })
 
 // !: 获取项目列表
@@ -142,7 +147,7 @@ router.get('/list/:id', [jsonParser, validateProjectList], async (req, res) => {
     })
   )
 
-  res.status(200).json(formatResponse(200, '获取项目列表成功', { ...result, list }))
+  res.status(200).json(formatResponse(1, '获取项目列表成功', { ...result, list }))
 })
 
 module.exports = router

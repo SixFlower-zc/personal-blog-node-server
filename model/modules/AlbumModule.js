@@ -115,6 +115,7 @@ const albumSchema = new Schema(
           views,
           visitors = [],
           isPublic,
+          create_time,
         } = ret
         return {
           id: _id.toString(),
@@ -128,6 +129,7 @@ const albumSchema = new Schema(
           views,
           visitors: visitors.map((visitor) => visitor.toString()),
           isPublic,
+          create_time,
         }
       },
     },

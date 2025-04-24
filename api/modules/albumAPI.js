@@ -7,7 +7,8 @@
  * @property {string} corver - 封面图片ID
  * @property {string[]} [photos] - 图片列表
  * @property {string[]} [videos] - 视频列表
- * @property {number} views - 访问量
+ * @property {boolean} isTop - 是否置顶
+ * @property {number} [views] - 访问量
  * @property {string[]} [visitors] - 访问者ID列表
  * @property {string[]} [tags] - 标签列表
  * @property {boolean} isPublic - 是否公开
@@ -63,8 +64,8 @@ const createAlbum = async (params) => {
     await album.save()
 
     return album.toJSON()
-  } catch (error) {
-    throw new Error(`创建图集失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`创建图集失败: ${err.message}`)
   }
 }
 
@@ -85,8 +86,8 @@ const updateAlbum = async (albumId, params) => {
       throw new Error('图集不存在')
     }
     return album.toJSON()
-  } catch (error) {
-    throw new Error(`更新图集失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`更新图集失败: ${err.message}`)
   }
 }
 
@@ -107,8 +108,8 @@ const deleteAlbum = async (albumId, isDeleted = true) => {
       throw new Error('图集不存在')
     }
     return album.toJSON()
-  } catch (error) {
-    throw new Error(`删除图集失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`删除图集失败: ${err.message}`)
   }
 }
 
@@ -144,8 +145,8 @@ const getAlbumById = async (albumId) => {
     }
 
     return albumData
-  } catch (error) {
-    throw new Error(`获取图集详情失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`获取图集详情失败: ${err.message}`)
   }
 }
 
@@ -161,7 +162,6 @@ const getAlbumList = async (params) => {
       pageSize = 10,
       sortField = 'create_time',
       sortOrder = -1,
-      creator,
       title,
       tags,
       isPublic = true,
@@ -169,21 +169,19 @@ const getAlbumList = async (params) => {
     const skip = (page - 1) * pageSize
 
     // 基础查询条件：只查找未删除的文档
-    const conditions = { isDeleted: false, isPublic }
-    // 如果存在 creator 字段，添加精确匹配条件
-    if (creator) conditions.creator = creator
+    const query = { isDeleted: false, isPublic }
     // 如果存在 title 字段，添加模糊匹配条件（不区分大小写）
-    if (title) conditions.title = { $regex: title, $options: 'i' }
+    if (title) query.title = { $regex: title, $options: 'i' }
     // 如果存在 tags 字段，添加数组匹配条件（`tags` 必须包含所有查询值）
-    if (tags) conditions.tags = { $all: tags }
+    if (tags) query.tags = { $all: tags }
 
     // 构建排序条件
     const sort = {}
     sort[sortField] = Number(sortOrder)
 
     const [total, list] = await Promise.all([
-      AlbumModule.countDocuments(conditions),
-      AlbumModule.find(conditions).sort(sort).skip(skip).limit(pageSize),
+      AlbumModule.countDocuments(query),
+      AlbumModule.find(query).sort(sort).skip(skip).limit(pageSize),
     ])
     if (page > 1 && page > Math.ceil(total / pageSize)) {
       throw new Error('页码超出范围')
@@ -197,8 +195,8 @@ const getAlbumList = async (params) => {
       sortOrder,
       list,
     }
-  } catch (error) {
-    throw new Error(`查询图集列表失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`查询图集列表失败: ${err.message}`)
   }
 }
 
@@ -218,8 +216,8 @@ const incrementAlbumViews = async (albumId) => {
       throw new Error('图集不存在')
     }
     return album.toJSON()
-  } catch (error) {
-    throw new Error(`增加图集访问量失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`增加图集访问量失败: ${err.message}`)
   }
 }
 
@@ -240,8 +238,8 @@ const addAlbumVisitor = async (albumId, userId) => {
       throw new Error('图集不存在')
     }
     return album.toJSON()
-  } catch (error) {
-    throw new Error(`增加图集访问者失败: ${error.message}`)
+  } catch (err) {
+    throw new Error(`增加图集访问者失败: ${err.message}`)
   }
 }
 

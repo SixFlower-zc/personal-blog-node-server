@@ -2,17 +2,17 @@ const { Schema, model } = require('mongoose')
 
 const docSchema = new Schema(
   {
-    /** 文档创建者 */
+    /** 文章创建者 */
     creator: {
       type: Schema.Types.ObjectId,
       ref: 'users',
       required: [true, '项目创建者不能为空'],
     },
 
-    /** 文档标题 */
+    /** 文章标题 */
     title: {
       type: String,
-      required: [true, '文档标题不能为空'],
+      required: [true, '文章标题不能为空'],
       maxlength: 50,
     },
 
@@ -37,11 +37,22 @@ const docSchema = new Schema(
       default: [],
     },
 
-    /** 更改次数 */
-    editTimes: { type: Number, default: 0 },
-
     /** 关联项目（可选，与项目墙关联） */
     relatedProject: { type: Schema.Types.ObjectId, ref: 'projects' },
+
+    /** 访问量 */
+    views: {
+      type: Number,
+      default: 0,
+    },
+
+    /** 访问者列表 */
+    visitors: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'users',
+      },
+    ],
 
     /** 公开状态 */
     isPublic: {
@@ -62,10 +73,10 @@ const docSchema = new Schema(
     update_time: Date,
   },
   {
-    // 文档在创建时自动将create_time和update_time字段设置为当前时间，文档更新时自动更新update_time字段
-    timestamps: { createdAt: 'create_time', updatedAt: 'update_time' }, // 文档在查询普通对象时，将返回的字段中包含虚拟字段
+    // 文章在创建时自动将create_time和update_time字段设置为当前时间，文章更新时自动更新update_time字段
+    timestamps: { createdAt: 'create_time', updatedAt: 'update_time' }, // 文章在查询普通对象时，将返回的字段中包含虚拟字段
     versionKey: false, // 禁用 __v 版本字段
-    // 文档在查询json对象时，将返回的字段中包含虚拟字段
+    // 文章在查询json对象时，将返回的字段中包含虚拟字段
     toJSON: {
       virtuals: true,
       transform: (doc, ret) => {
@@ -83,8 +94,9 @@ const docSchema = new Schema(
           editTimes,
           relatedProject,
           isPublic,
+          views,
+          visitors,
           create_time,
-          update_time,
         } = ret
 
         return {
@@ -97,8 +109,9 @@ const docSchema = new Schema(
           editTimes,
           relatedProject: relatedProject ? relatedProject.toString() : null,
           isPublic,
+          views,
+          visitors,
           create_time,
-          update_time,
         }
       },
     },
