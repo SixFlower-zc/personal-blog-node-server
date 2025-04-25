@@ -67,6 +67,15 @@ const createVideo = async (videoData) => {
  */
 const updatePhoto = async (photoId, photoData) => {
   try {
+    // 检查是否更改isPublic
+    if (photoData.isPublic) {
+      // 检查是否状态为封禁
+      const photo = await PhotoModule.findById(photoId)
+      if (photo.status === 'banned') {
+        throw new Error('该图片已被封禁，无法公开！')
+      }
+    }
+
     const photo = await PhotoModule.findByIdAndUpdate(photoId, { $set: photoData }, { new: true })
     return photo.toJSON()
   } catch (err) {
@@ -82,6 +91,15 @@ const updatePhoto = async (photoId, photoData) => {
  */
 const updateVideo = async (videoId, videoData) => {
   try {
+    // 检查是否更改isPublic
+    if (videoData.isPublic) {
+      // 检查是否状态为封禁
+      const video = await VideoModule.findById(videoId)
+      if (video.status === 'banned') {
+        throw new Error('该视频已被封禁，无法公开！')
+      }
+    }
+
     const video = await VideoModule.findByIdAndUpdate(videoId, { $set: videoData }, { new: true })
     return video.toJSON()
   } catch (err) {
@@ -164,7 +182,7 @@ const getPhotoUrl = async (photoId) => {
   try {
     const photo = await PhotoModule.findById(photoId)
     if (!photo) {
-      throw new Error('照片不存在')
+      throw new Error('照片不存在！')
     }
     return photo.url
   } catch (err) {
@@ -181,7 +199,7 @@ const getVideoUrl = async (videoId) => {
   try {
     const video = await VideoModule.findById(videoId)
     if (!video) {
-      throw new Error('视频不存在')
+      throw new Error('视频不存在！')
     }
     return video.url
   } catch (err) {

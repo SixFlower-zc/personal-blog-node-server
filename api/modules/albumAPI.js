@@ -77,13 +77,22 @@ const createAlbum = async (params) => {
  */
 const updateAlbum = async (albumId, params) => {
   try {
+    // 检查是否更改isPublic
+    if (params.isPublic) {
+      // 检查是否状态为封禁
+      const album = await AlbumModule.findById(albumId)
+      if (album.status === 'banned') {
+        throw new Error('该图集已被封禁，不可公开！')
+      }
+    }
+
     const album = await AlbumModule.findByIdAndUpdate(
       albumId,
       { $set: params },
       { new: true, runValidators: true }
     )
     if (!album) {
-      throw new Error('图集不存在')
+      throw new Error('图集不存在！')
     }
     return album.toJSON()
   } catch (err) {
@@ -105,7 +114,7 @@ const deleteAlbum = async (albumId, isDeleted = true) => {
       { new: true }
     )
     if (!album) {
-      throw new Error('图集不存在')
+      throw new Error('图集不存在！')
     }
     return album.toJSON()
   } catch (err) {
@@ -122,7 +131,7 @@ const getAlbumById = async (albumId) => {
   try {
     const album = await AlbumModule.findById(albumId)
     if (!(album && !album.isDeleted)) {
-      throw new Error('图集不存在')
+      throw new Error('图集不存在！')
     }
 
     const albumData = album.toJSON()
@@ -184,7 +193,7 @@ const getAlbumList = async (params) => {
       AlbumModule.find(query).sort(sort).skip(skip).limit(pageSize),
     ])
     if (page > 1 && page > Math.ceil(total / pageSize)) {
-      throw new Error('页码超出范围')
+      throw new Error('页码超出范围！')
     }
     return {
       page,
@@ -213,7 +222,7 @@ const incrementAlbumViews = async (albumId) => {
       { new: true }
     )
     if (!album || album.isDeleted) {
-      throw new Error('图集不存在')
+      throw new Error('图集不存在！')
     }
     return album.toJSON()
   } catch (err) {
@@ -235,7 +244,7 @@ const addAlbumVisitor = async (albumId, userId) => {
       { new: true }
     )
     if (!album || album.isDeleted) {
-      throw new Error('图集不存在')
+      throw new Error('图集不存在！')
     }
     return album.toJSON()
   } catch (err) {

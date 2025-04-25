@@ -66,6 +66,14 @@ const docSchema = new Schema(
       default: false,
     },
 
+    /** 发布状态 */
+    status: {
+      type: String,
+      default: 'pending',
+      // 草稿 待审核 已封禁 审核通过
+      enum: ['draft', 'pending', 'banned', 'approved'],
+    },
+
     /** 创建时间 */
     create_time: Date,
 

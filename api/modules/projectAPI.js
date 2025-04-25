@@ -58,6 +58,15 @@ const createProject = async (params) => {
  */
 const updateProject = async (projectId, updateData) => {
   try {
+    // 检查是否更改isPublic
+    if (updateData.isPublic) {
+      // 检查是否状态为封禁
+      const project = await ProjectModule.findById(projectId)
+      if (project.status === 'banned') {
+        throw new Error('该项目已被封禁，无法公开！')
+      }
+    }
+
     const project = await ProjectModule.findByIdAndUpdate(
       projectId,
       { $set: updateData },
@@ -84,7 +93,7 @@ const deleteProject = async (projectId, isDeleted = true) => {
     )
     // 项目不存在
     if (!project) {
-      throw new Error('项目不存在')
+      throw new Error('项目不存在！')
     }
     return project.toJSON()
   } catch (err) {
@@ -101,7 +110,7 @@ const getProjectDetail = async (projectId) => {
   try {
     const project = await ProjectModule.findById(projectId)
     if (!project || project.isDeleted) {
-      throw new Error('项目不存在')
+      throw new Error('项目不存在！')
     }
     const cover = await getPhotoUrl(project.cover)
 
@@ -184,7 +193,7 @@ const getProjectList = async (queryParams) => {
     ])
 
     if (page > 1 && page > Math.ceil(total / pageSize)) {
-      throw new Error('页码超出范围')
+      throw new Error('页码超出范围！')
     }
 
     return {

@@ -69,6 +69,14 @@ const createDoc = async (params) => {
  */
 const updateDoc = async (docId, updateData) => {
   try {
+    // 检查是否更改isPublic
+    if (updateData.isPublic) {
+      // 检查是否状态为封禁
+      const doc = await DocModule.findById(docId)
+      if (doc.status === 'banned') {
+        throw new Error('该文章已被封禁，无法公开！')
+      }
+    }
     const doc = await DocModule.findByIdAndUpdate(
       docId,
       {
@@ -93,7 +101,7 @@ const deleteDoc = async (docId, isDeleted = true) => {
     const doc = await DocModule.findByIdAndUpdate(docId, { $set: { isDeleted } }, { new: true })
     // 如果文章不存在，抛出错误
     if (!doc) {
-      throw new Error('文章不存在')
+      throw new Error('文章不存在！')
     }
     return doc.toJSON()
   } catch (err) {
@@ -111,7 +119,7 @@ const getDocDetail = async (docId, userId) => {
   try {
     const doc = await DocModule.findById(docId)
     if (!doc || doc.isDeleted) {
-      throw new Error('文章不存在')
+      throw new Error('文章不存在！')
     }
     return doc.toJSON()
   } catch (err) {
@@ -162,7 +170,7 @@ const getDocList = async (queryParams, userId) => {
     ])
 
     if (page > 1 && page > Math.ceil(total / pageSize)) {
-      throw new Error('页码超出范围')
+      throw new Error('页码超出范围！')
     }
 
     return {
